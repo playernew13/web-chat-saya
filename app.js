@@ -1,40 +1,40 @@
-// ==== CHAT FIREBASE ====
- const daftarPesan = document.getElementById('daftarPesan');
- const inputPesan = document.getElementById('inputPesan');
- // Ambil nama pengguna
- let namaPengguna = localStorage.getItem('namaPengguna');
- if (!namaPengguna) {
-   namaPengguna = prompt('Masukkan nama kamu:');
-   if (namaPengguna) {
-     localStorage.setItem('namaPengguna', namaPengguna);
-   } else {
-     namaPengguna = 'Anonim';
+// ==== FUNGSI MASUK OBROLAN ====
+ function masukObrolan() {
+   const nama = document.getElementById('namaInput').value.trim();
+   if (!nama) {
+     alert('Masukkan nama dulu!');
+     return;
    }
+   localStorage.setItem('namaPengguna', nama);
+   document.getElementById('halamanMasuk').style.display = 'none';
+   document.getElementById('halamanChat').style.display = 'block';
  }
- // Kirim pesan
+ // ==== FUNGSI KIRIM PESAN ====
  function kirimPesan() {
-   const teks = inputPesan.value.trim();
+   const nama = localStorage.getItem('namaPengguna') || 'Anonim';
+   const teks = document.getElementById('inputPesan').value.trim();
    if (!teks) return;
    push(ref(db, 'pesan'), {
-     nama: namaPengguna,
+     nama: nama,
      teks: teks,
      waktu: new Date().toLocaleTimeString('id-ID')
    });
-   inputPesan.value = '';
+   document.getElementById('inputPesan').value = '';
  }
- // Tampilkan pesan masuk
+ // ==== TAMPILKAN PESAN MASUK ====
  onChildAdded(ref(db, 'pesan'), (snapshot) => {
    const data = snapshot.val();
-   tambahPesanKeLayar(data.nama, data.teks, data.waktu);
+   tampilkanPesan(data.nama, data.teks, data.waktu);
  });
- function tambahPesanKeLayar(nama, teks, waktu) {
+ // ==== TAMBAH PESAN KE LAYAR ====
+ function tampilkanPesan(nama, teks, waktu) {
    const div = document.createElement('div');
-   div.style.cssText = 'margin: 8px 0; padding: 12px; background:#e8f0fe; border-radius:12px;';
+   div.className = 'pesan';
    div.innerHTML = `
-     <strong style="color:#5865f2">${nama}</strong>
-     <span style="font-size:11px; color:#888; margin-left:8px">${waktu}</span>
-     <p style="margin:6px 0 0 0; word-wrap:break-word">${teks}</p>
+     <span class="nama">${nama}</span>
+     <span class="waktu">${waktu}</span>
+     <p style="margin:8px 0 0 0;">${teks}</p>
    `;
-   daftarPesan.appendChild(div);
-   daftarPesan.scrollTop = daftarPesan.scrollHeight;
+   document.getElementById('daftarPesan').appendChild(div);
+   document.getElementById('daftarPesan').scrollTop = document.getElementById('daftarPesan').scrollHeight;
  }

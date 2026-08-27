@@ -1,44 +1,41 @@
-let namaSaya = "";
- function masuk() {
-   const input = document.getElementById("namaPengguna").value.trim();
-   if (input === "") { alert("Masukkan nama dulu!"); return; }
-   namaSaya = input;
-   document.getElementById("namaPenggunaTampil").textContent = namaSaya;
-   document.getElementById("loginPage").classList.remove("active");
-   document.getElementById("chatPage").classList.add("active");
- }
- function kirimPesan() {
-   const input = document.getElementById("inputPesan");
-   const teks = input.value.trim();
-   if (teks === "") return;
-   
-   push(ref(db, "pesan"), {
-     pengirim: namaSaya,
-     teks: teks,
-     waktu: Date.now()
-   });
-   input.value = "";
- }
- onChildAdded(ref(db, "pesan"), (data) => {
-   const psn = data.val();
-   const adalahSaya = psn.pengirim === namaSaya;
-   tambahPesan(psn.pengirim, psn.teks, psn.waktu, adalahSaya);
- });
- function tambahPesan(pengirim, teks, waktu, adalahSaya) {
-   const daftar = document.getElementById("daftarPesan");
-   const jam = new Date(waktu).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-   const kotak = document.createElement("div");
-   kotak.className = `pesan ${adalahSaya ? "saya" : "orang"}`;
-   kotak.innerHTML = `<strong>${pengirim}</strong><p>${teks}</p><div class="waktu">${jam}</div>`;
-   daftar.appendChild(kotak);
-   daftar.scrollTop = daftar.scrollHeight;
- }
- function keluar() {
-   if (confirm("Yakin keluar?")) {
-     document.getElementById("chatPage").classList.remove("active");
-     document.getElementById("loginPage").classList.add("active");
-     document.getElementById("daftarPesan").innerHTML = "";
-     document.getElementById("namaPengguna").value = "";
-     namaSaya = "";
+// ==== FUNGSI KIRIM & TAMPILKAN PESAN ====
+ // Ambil elemen dari halaman HTML
+ const inputPesan = document.getElementById('inputPesan');
+ const daftarPesan = document.getElementById('daftarPesan');
+ const namaPengguna = localStorage.getItem('namaPengguna') || 'Anonim';
+ // Simpan nama pengguna
+ function simpanNama() {
+   const nama = document.getElementById('namaInput').value.trim();
+   if (nama) {
+     localStorage.setItem('namaPengguna', nama);
+     location.reload();
    }
  }
+ // Kirim pesan ke Firebase
+ function kirimPesan() {
+   const teks = inputPesan.value.trim();
+   if (!teks) return;
+   tambah(ref(db, 'pesan'), {
+     nama: namaPengguna,
+     teks: teks,
+     waktu: new Date().toLocaleTimeString('id-ID')
+   });
+   inputPesan.value = '';
+ }
+ // Tampilkan pesan yang masuk
+ onChildAdded(ref(db, 'pesan'), (snapshot) => {
+   const data = snapshot.val();
+   tampilkanPesan(data.nama, data.teks, data.waktu);
+ });
+ // Fungsi tampilkan pesan di layar
+ function tampilkanPesan(nama, teks, waktu) {
+   const div = document.createElement('div');
+   div.style.cssText = 'margin: 8px 0; padding: 10px; background:#e3f2fd; border-radius:12px;';
+   div.innerHTML = `
+     <strong style="color:#1976d2">${nama}</strong>
+     <span style="font-size:11px; color:#666; margin-left:8px">${waktu}</span>
+     <p style="margin:5px 0 0 0; word-wrap:break-word">${teks}</p>
+   `;
+   daftarPesan.appendChild(div);
+   daftarPesan.scrollTop = daftarPesan.scrollHeight;
+}

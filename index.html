@@ -1,57 +1,92 @@
 <!DOCTYPE html>
- <html lang="id">
+ <html>
  <head>
+   <title>Web Chat</title>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Web Chat - Mirip WhatsApp</title>
-   <link rel="stylesheet" href="style.css">
+   <style>
+     * { box-sizing: border-box; font-family: sans-serif; }
+     body { max-width: 500px; margin: 0 auto; padding: 20px; }
+     #halamanMasuk { text-align: center; padding-top: 100px; }
+     #halamanChat { display: none; }
+     #daftarPesan { height: 500px; overflow-y: auto; padding: 15px; background: #f9f9f9; border-radius: 12px; margin-bottom: 15px; }
+     input { width: 75%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; }
+     button { padding: 12px 20px; background: #6c5ce7; color: white; border: none; border-radius: 8px; margin-left: 5px; font-size: 16px; cursor: pointer; }
+     button:active { opacity: 0.8; }
+     .pesan { margin: 8px 0; padding: 10px 14px; background: #e8f0fe; border-radius: 12px; }
+   </style>
  </head>
  <body>
- <div id="loginPage" class="page active">
-   <div class="login-box">
-     <h1>💬 Web Chat</h1>
-     <p>Masuk untuk mulai mengobrol</p>
-     <input type="text" id="namaPengguna" placeholder="Masukkan Nama / Nomor HP">
-     <button onclick="masuk()">Masuk Obrolan</button>
-   </div>
+ <!-- HALAMAN MASUK -->
+ <div id="halamanMasuk">
+   <h2>💬 Web Chat</h2>
+   <p>Masuk untuk mulai mengobrol</p>
+   <br>
+   <input type="text" id="namaInput" placeholder="Masukkan nama kamu...">
+   <br><br>
+   <button onclick="masukObrolan()">Masuk Obrolan</button>
  </div>
- <div id="chatPage" class="page">
-   <div class="chat-header">
-     <span id="namaPenggunaTampil">Pengguna</span>
-     <button onclick="keluar()" class="btn-keluar">Keluar</button>
-   </div>
-   <div id="daftarPesan" class="chat-body"></div>
-   <div class="chat-kirim">
-     <input type="text" id="inputPesan" placeholder="Ketik pesan..." onkeypress="if(event.key==='Enter')kirimPesan()">
-     <button onclick="kirimPesan()">Kirim</button>
-   </div>
+ <!-- HALAMAN CHAT -->
+ <div id="halamanChat">
+   <div id="daftarPesan"></div>
+   <input type="text" id="inputPesan" placeholder="Ketik pesan...">
+   <button onclick="kirimPesan()">Kirim</button>
  </div>
- <script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js";
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  const firebaseConfig = {
-  apiKey: "AIzaSyBQ0_bbQ1FPRUx1zwi57klC329AG7H9Fwk",
-  authDomain: "web-chat-saya.firebaseapp.com",
-  databaseURL: "https://web-chat-saya-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "web-chat-saya",
-  storageBucket: "web-chat-saya.firebasestorage.app",
-  messagingSenderId: "339753603338",
-  appId: "1:339753603338:web:89fa40e03f3ead1c742af3"
-};
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
- window.db = db;
- window.ref = ref;
- window.push = push;
- window.onChildAdded = onChildAdded;
-</script>
- <script src="app.js"></script>
+ <!-- FIREBASE & KODE -->
+ <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-app-compat.js"></script>
+ <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-database-compat.js"></script>
+ <script>
+   const firebaseConfig = {
+     apiKey: "AIzaSyBQ0_bbQ1FPRUx1zwi57klC329AG7H9Fwk",
+     authDomain: "web-chat-saya.firebaseapp.com",
+     databaseURL: "https://web-chat-saya-default-rtdb.asia-southeast1.firebasedatabase.app/",
+     projectId: "web-chat-saya",
+     storageBucket: "web-chat-saya.firebasestorage.app",
+     messagingSenderId: "339753603338",
+     appId: "1:339753603338:web:89fa40e03f3ead1c7f1a2b"
+   };
+   firebase.initializeApp(firebaseConfig);
+   const db = firebase.database();
+   // ==== FUNGSI MASUK OBROLAN ====
+   function masukObrolan() {
+     const nama = document.getElementById('namaInput').value.trim();
+     if (!nama) {
+       alert('Masukkan nama dulu!');
+       return;
+     }
+     localStorage.setItem('namaPengguna', nama);
+     document.getElementById('halamanMasuk').style.display = 'none';
+     document.getElementById('halamanChat').style.display = 'block';
+   }
+   // ==== FUNGSI KIRIM PESAN ====
+   function kirimPesan() {
+     const nama = localStorage.getItem('namaPengguna') || 'Anonim';
+     const teks = document.getElementById('inputPesan').value.trim();
+     if (!teks) return;
+     db.ref('pesan').push({
+       nama: nama,
+       teks: teks,
+       waktu: new Date().toLocaleTimeString('id-ID')
+     });
+     document.getElementById('inputPesan').value = '';
+   }
+   // ==== TAMPILKAN PESAN MASUK ====
+   db.ref('pesan').on('child_added', function(snapshot) {
+     const data = snapshot.val();
+     tampilkanPesan(data.nama, data.teks, data.waktu);
+   });
+   // ==== TAMBAH PESAN KE LAYAR ====
+   function tampilkanPesan(nama, teks, waktu) {
+     const div = document.createElement('div');
+     div.className = 'pesan';
+     div.innerHTML = `
+       <strong style="color:#5865f2">${nama}</strong>
+       <span style="font-size:11px; color:#888; margin-left:8px">${waktu}</span>
+       <p style="margin:6px 0 0 0;">${teks}</p>
+     `;
+     document.getElementById('daftarPesan').appendChild(div);
+     document.getElementById('daftarPesan').scrollTop = document.getElementById('daftarPesan').scrollHeight;
+   }
+ </script>
  </body>
- </html>
+  </html>

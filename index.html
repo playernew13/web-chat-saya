@@ -162,7 +162,7 @@
        0% { opacity: 1; transform: scale(1); }
        100% { opacity: 0; transform: scale(0.8) translateX(-20px); }
      }
-     /* === KOTAK KIRIM BAWAH — LEBIH KEREN === */
+     /* === KOTAK KIRIM BAWAH — SEPERTI WHATSAPP === */
      .chat-input {
        position: fixed;
        bottom: 0; left: 0; right: 0;
@@ -189,7 +189,7 @@
      .chat-input input[type="text"]:focus {
        box-shadow: 0 0 0 2px #25d366, 0 2px 8px rgba(37, 211, 102, 0.3);
      }
-     .chat-input .btn-foto, .chat-input .btn-kirim {
+     .chat-input .btn-foto, .chat-input .btn-emoji {
        width: 44px; height: 44px;
        border-radius: 50%;
        border: none;
@@ -198,21 +198,35 @@
        cursor: pointer;
        flex-shrink: 0;
        transition: transform 0.2s, box-shadow 0.3s;
-     }
-     .chat-input .btn-foto {
        background: #f0f2f5;
        color: #555;
      }
-     .chat-input .btn-foto:active {
+     .chat-input .btn-foto:active, .chat-input .btn-emoji:active {
        transform: scale(0.9);
      }
+     /* === TOMBOL KIRIM PESAWAT — AKTIF / NONAKTIF === */
      .chat-input .btn-kirim {
+       width: 44px; height: 44px;
+       border-radius: 50%;
+       border: none;
+       display: flex; align-items: center; justify-content: center;
+       cursor: pointer;
+       flex-shrink: 0;
+       transition: transform 0.2s, box-shadow 0.3s, background 0.3s, opacity 0.3s;
        background: #25d366;
        color: white;
        box-shadow: 0 2px 8px rgba(37, 211, 102, 0.4);
        font-size: 22px;
+       opacity: 0.5;
+       transform: scale(0.85);
+       pointer-events: none;
      }
-     .chat-input .btn-kirim:active {
+     .chat-input .btn-kirim.aktif {
+       opacity: 1;
+       transform: scale(1);
+       pointer-events: auto;
+     }
+     .chat-input .btn-kirim.aktif:active {
        transform: scale(0.9);
      }
      .chat-input .btn-kirim svg {
@@ -221,10 +235,10 @@
        fill: white;
        transition: transform 0.3s;
      }
-     .chat-input .btn-kirim:active svg {
+     .chat-input .btn-kirim.aktif:active svg {
        transform: translateX(3px) translateY(-3px);
      }
-     /* === STIKER EMOJI === */
+     /* === EMOJI PICKER === */
      .emoji-picker {
        position: fixed;
        bottom: 80px;
@@ -252,17 +266,6 @@
      .emoji-picker span:hover {
        background: #f0f2f5;
      }
-     .btn-emoji {
-       width: 44px; height: 44px;
-       border-radius: 50%;
-       border: none;
-       background: #f0f2f5;
-       font-size: 22px;
-       cursor: pointer;
-       flex-shrink: 0;
-       transition: transform 0.2s;
-     }
-     .btn-emoji:active { transform: scale(0.9); }
    </style>
  </head>
  <body>
@@ -305,8 +308,8 @@
      <input type="file" id="inputFoto" accept="image/*" style="display:none;" onchange="pilihFoto(this)">
      <button class="btn-foto" onclick="document.getElementById('inputFoto').click()">📎</button>
      <button class="btn-emoji" onclick="toggleEmoji()">😀</button>
-     <input type="text" id="inputPesan" placeholder="Ketik pesan..." onkeydown="if(event.key==='Enter') kirimPesan()">
-     <button class="btn-kirim" onclick="kirimPesan()">
+     <input type="text" id="inputPesan" placeholder="Ketik pesan..." oninput="cekInputPesan()" onkeydown="if(event.key==='Enter') kirimPesan()">
+     <button class="btn-kirim" id="btnKirim" onclick="kirimPesan()">
        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
        </svg>
@@ -338,15 +341,26 @@
      document.getElementById('halamanChat').style.display = 'block';
    }
 
+   function cekInputPesan() {
+     const teks = document.getElementById('inputPesan').value.trim();
+     const btn = document.getElementById('btnKirim');
+     if (teks.length > 0) {
+       btn.classList.add('aktif');
+     } else {
+       btn.classList.remove('aktif');
+     }
+   }
+
    function kirimPesan() {
      const teks = document.getElementById('inputPesan').value.trim();
      if (!teks) return;
-     const ref = db.ref('pesan').push({
+     db.ref('pesan').push({
        nama: namaSaya,
        teks: teks,
        waktu: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})
      });
      document.getElementById('inputPesan').value = '';
+     cekInputPesan();
    }
 
    function pilihFoto(input) {
@@ -378,6 +392,7 @@
      const input = document.getElementById('inputPesan');
      input.value += emoji;
      input.focus();
+     cekInputPesan();
      document.getElementById('emojiPicker').style.display = 'none';
    }
 
@@ -446,4 +461,4 @@
    });
  </script>
  </body>
-    </html>
+      </html>

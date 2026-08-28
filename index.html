@@ -79,11 +79,12 @@
      .pesan .hapus-btn {
        position: absolute; top: -8px; right: -8px; width: 24px; height: 24px;
        border-radius: 50%; background: #e74c3c; color: white; border: 2px solid white;
-       font-size: 12px; line-height: 20px; text-align: center; cursor: pointer;
-       display: none; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+       font-size: 14px; font-weight: bold; line-height: 20px; text-align: center; cursor: pointer;
+       display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+       opacity: 0; transition: opacity 0.2s;
      }
-     .pesan:hover .hapus-btn { display: block; }
-     .pesan.hapus-animasi { animation: hapusAnim 0.4s ease forwards; }
+     .pesan:hover .hapus-btn { opacity: 1; }
+     .pesan.hapus-animasi { animation: hapusAnim 0.3s ease forwards; }
      @keyframes hapusAnim {
        0% { opacity: 1; transform: scale(1); }
        100% { opacity: 0; transform: scale(0.8) translateX(-20px); }
@@ -112,7 +113,6 @@
      }
      #modalTelpon.aktif { display: flex; }
      #modalTelpon.video-mode { background: #000; }
-     /* Video Layar Penuh */
      #videoJauh {
        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
        object-fit: cover; background: #1a1a2e; display: none;
@@ -227,8 +227,8 @@
    <div id="modalTelpon">
      <video id="videoJauh" autoplay playsinline muted></video>
      <video id="videoDekat" autoplay playsinline muted></video>
-     
-     <div class="konten-telpon">
+
+<div class="konten-telpon">
        <div class="avatar-besar" id="avatarTelpon">📞</div>
        <div class="nama-panggilan" id="namaPanggilan">Memanggil...</div>
        <div class="status-telpon" id="statusTelpon">Berdering...</div>
@@ -248,7 +248,6 @@
      <input type="file" id="inputFoto" accept="image/*" style="display:none;" onchange="pilihFoto(this)">
      <button class="btn-foto" onclick="document.getElementById('inputFoto').click()">📎</button>
      
-     <!-- 🎵 TOMBOL AUDIO BARU -->
      <input type="file" id="inputAudio" accept="audio/*" style="display:none;" onchange="pilihAudio(this)">
      <button class="btn-audio" onclick="document.getElementById('inputAudio').click()">🎵</button>
      
@@ -278,21 +277,8 @@
    let namaSaya = "";
    const pesanElements = new Map();
    
-   // 📞 VARIABEL TELPONAN WEB-RTC
-   let peerConnection;
-   let streamLokal;
-   let sedangTelpon = false;
-   let jenisTelpon = null;
-   let idPanggilanAktif = null;
-   // Server sinyal standar dunia (bisa dipakai gratis)
-   const konfigurasiICE = {
-     iceServers: [
-       { urls: "stun:stun.l.google.com:19302" },
-       { urls: "stun:stun1.l.google.com:19302" },
-       { urls: "stun:stun2.l.google.com:19302" }
-     ]
-   };
-   // === MASUK OBROLAN ===
+   let peerConnection, streamLokal, sedangTelpon = false, jenisTelpon = null, idPanggilanAktif = null;
+   const konfigurasiICE = { iceServers: [ { urls: "stun:stun.l.google.com:19302" }, { urls: "stun:stun1.l.google.com:19302" } ] };
    function masukObrolan() {
      namaSaya = document.getElementById('namaInput').value.trim();
      if (!namaSaya) { alert('Masukkan nama dulu!'); return; }
@@ -302,7 +288,6 @@
      pantauPesan();
      pantauPanggilanMasuk();
    }
-   // === KIRIM PESAN TEKS ===
    function cekInputPesan() {
      const teks = document.getElementById('inputPesan').value.trim();
      document.getElementById('btnKirim').classList.toggle('aktif', teks.length > 0);
@@ -310,64 +295,43 @@
    function kirimPesan() {
      const teks = document.getElementById('inputPesan').value.trim();
      if (!teks) return;
-     db.ref('pesan').push({
-       nama: namaSaya, teks: teks, jenis: 'teks',
-       waktu: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})
-     });
+     db.ref('pesan').push({ nama: namaSaya, teks: teks, jenis: 'teks', waktu: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) });
      document.getElementById('inputPesan').value = '';
      cekInputPesan();
    }
-   // === 📸 KIRIM FOTO ===
    function pilihFoto(input) {
      if (!input.files || !input.files[0]) return;
      const file = input.files[0];
      if (file.size > 5 * 1024 * 1024) { alert('Foto terlalu besar! Maksimal 5MB.'); input.value = ''; return; }
      const reader = new FileReader();
-     reader.onload = function(e) {
-       db.ref('pesan').push({
-         nama: namaSaya, jenis: 'foto', foto: e.target.result,
-         waktu: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})
-       });
-     };
+     reader.onload = e => { db.ref('pesan').push({ nama: namaSaya, jenis: 'foto', foto: e.target.result, waktu: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) }); };
      reader.readAsDataURL(file);
      input.value = '';
    }
-   // === 🎵 KIRIM AUDIO / PESAN SUARA ===
    function pilihAudio(input) {
      if (!input.files || !input.files[0]) return;
      const file = input.files[0];
      if (!file.type.startsWith('audio/')) { alert('Pilih file audio saja!'); input.value = ''; return; }
      if (file.size > 8 * 1024 * 1024) { alert('Audio terlalu besar! Maksimal 8MB.'); input.value = ''; return; }
      const reader = new FileReader();
-     reader.onload = function(e) {
-       db.ref('pesan').push({
-         nama: namaSaya, jenis: 'audio', audioUrl: e.target.result,
-         waktu: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})
-       });
-     };
+     reader.onload = e => { db.ref('pesan').push({ nama: namaSaya, jenis: 'audio', audioUrl: e.target.result, waktu: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) }); };
      reader.readAsDataURL(file);
      input.value = '';
    }
-   // === TAMPILKAN PESAN (TEKS / FOTO / AUDIO) ===
    function tampilkanPesan(key, d) {
      if (pesanElements.has(key)) return;
      const div = document.createElement('div');
      div.className = 'pesan ' + (d.nama === namaSaya ? 'kirim' : 'terima');
      div.setAttribute('data-key', key);
      if (d.jenis === 'audio') {
-       // === PESAN AUDIO ===
        div.innerHTML = (d.nama !== namaSaya ? `<div class="nama">${d.nama}</div>` : '') +
-         `<audio controls class="audio-pesan" src="${d.audioUrl}">
-           Browser kamu tidak mendukung pemutar audio
-         ` +
+         `<audio controls class="audio-pesan" src="${d.audioUrl}">` +
          `<div class="waktu">${d.waktu}${d.nama === namaSaya ? `<span class="hapus-btn" onclick="hapusPesan('${key}', this.parentElement)">×</span>` : ''}</div>`;
      } else if (d.jenis === 'foto') {
-       // === PESAN FOTO ===
        div.innerHTML = (d.nama !== namaSaya ? `<div class="nama">${d.nama}</div>` : '') +
          `<img src="${d.foto}" class="foto-pesan" onclick="bukaFoto('${d.foto}')">` +
          `<div class="waktu">${d.waktu}${d.nama === namaSaya ? `<span class="hapus-btn" onclick="hapusPesan('${key}', this.parentElement)">×</span>` : ''}</div>`;
      } else {
-       // === PESAN TEKS BIASA ===
        div.innerHTML = (d.nama !== namaSaya ? `<div class="nama">${d.nama}</div>` : '') +
          `<div class="teks">${d.teks}</div>` +
          `<div class="waktu">${d.waktu}${d.nama === namaSaya ? `<span class="hapus-btn" onclick="hapusPesan('${key}', this.parentElement)">×</span>` : ''}</div>`;
@@ -376,184 +340,88 @@
      document.getElementById('daftarPesan').appendChild(div);
      document.getElementById('daftarPesan').scrollTop = document.getElementById('daftarPesan').scrollHeight;
    }
-   // === PANTAU PESAN DARI FIREBASE ===
    function pantauPesan() {
-     db.ref('pesan').limitToLast(50).on('child_added', snap => {
-       tampilkanPesan(snap.key, snap.val());
+     db.ref('pesan').limitToLast(50).on('child_added', snap => { tampilkanPesan(snap.key, snap.val()); });
+     db.ref('pesan').on('child_removed', snap => {
+       const el = pesanElements.get(snap.key);
+       if (el) { el.classList.add('hapus-animasi'); setTimeout(() => el.remove(), 300); pesanElements.delete(snap.key); }
      });
    }
-   // === FOTO MODAL ===
-   function bukaFoto(src) {
-     document.getElementById('fotoBesar').src = src;
-     document.getElementById('linkDownload').href = src;
-     document.getElementById('modalFoto').classList.add('tampil');
-   }
+   function bukaFoto(src) { document.getElementById('fotoBesar').src = src; document.getElementById('linkDownload').href = src; document.getElementById('modalFoto').classList.add('tampil'); }
    function tutupFoto() { document.getElementById('modalFoto').classList.remove('tampil'); }
-   // === EMOJI ===
-   function toggleEmoji() {
-     const picker = document.getElementById('emojiPicker');
-     picker.style.display = picker.style.display === 'flex' ? 'none' : 'flex';
-   }
-   function tambahEmoji(emoji) {
-     const input = document.getElementById('inputPesan');
-     input.value += emoji; input.focus(); cekInputPesan();
-     document.getElementById('emojiPicker').style.display = 'none';
-   }
-   // === HAPUS PESAN ===
+   function toggleEmoji() { const p = document.getElementById('emojiPicker'); p.style.display = p.style.display === 'flex' ? 'none' : 'flex'; }
+   function tambahEmoji(e) { const i = document.getElementById('inputPesan'); i.value += e; i.focus(); cekInputPesan(); document.getElementById('emojiPicker').style.display = 'none'; }
+   // ✅ FUNGSI HAPUS PESAN SUDAH DIPERBAIKI!
    function hapusPesan(key, element) {
      if (!confirm('Hapus pesan ini?')) return;
-     element.classList.add('hapus-animasi');
-     setTimeout(() => {
-       db.ref('pesan/' + key).remove().catch(err => {
-         alert('Gagal hapus: ' + err.message);
-         element.classList.remove('hapus-animasi');
+     const pesanEl = element.closest('.pesan');
+     pesanEl.classList.add('hapus-animasi');
+     
+     db.ref('pesan/' + key).remove()
+       .then(() => {
+         console.log('✅ Pesan berhasil dihapus!');
+         setTimeout(() => { pesanElements.delete(key); }, 300);
+       })
+       .catch(err => {
+         alert('❌ Gagal hapus: ' + err.message + '\n\n⚠️ Buka Firebase → Aturan Rules → izinkan tulis!');
+         pesanEl.classList.remove('hapus-animasi');
        });
-     }, 300);
-    }
-   // 📞 === TELPONAN ===
+   }
    async function mulaiTelpon(jenis) {
-     jenisTelpon = jenis;
-     sedangTelpon = true;
-     idPanggilanAktif = namaSaya + '_' + Date.now();
+     jenisTelpon = jenis; sedangTelpon = true; idPanggilanAktif = namaSaya + '_' + Date.now();
      document.getElementById('namaPanggilan').textContent = namaSaya;
      document.getElementById('statusTelpon').textContent = 'Menunggu dijawab... 📞';
      document.getElementById('modalTelpon').classList.add('aktif');
-     document.getElementById('btnTerima').style.display = 'none';
-     document.getElementById('btnTolak').style.display = 'none';
-     document.getElementById('btnAkhiri').style.display = 'inline-block';
-     if (jenis === 'video') {
-       document.getElementById('modalTelpon').classList.add('video-mode');
-       document.getElementById('avatarTelpon').style.display = 'none';
-       document.getElementById('videoDekat').classList.add('tampil');
-       document.getElementById('videoJauh').classList.add('tampil');
-     } else {
-       document.getElementById('modalTelpon').classList.remove('video-mode');
-       document.getElementById('avatarTelpon').style.display = 'flex';
-       document.getElementById('videoDekat').classList.remove('tampil');
-       document.getElementById('videoJauh').classList.remove('tampil');
-     }
+     document.getElementById('btnTerima').style.display = 'none'; document.getElementById('btnTolak').style.display = 'none'; document.getElementById('btnAkhiri').style.display = 'inline-block';
+     jenis === 'video' ? (document.getElementById('modalTelpon').classList.add('video-mode'), document.getElementById('avatarTelpon').style.display = 'none', document.getElementById('videoDekat').classList.add('tampil'), document.getElementById('videoJauh').classList.add('tampil')) : (document.getElementById('modalTelpon').classList.remove('video-mode'), document.getElementById('avatarTelpon').style.display = 'flex', document.getElementById('videoDekat').classList.remove('tampil'), document.getElementById('videoJauh').classList.remove('tampil'));
      try {
-       streamLokal = await navigator.mediaDevices.getUserMedia({ 
-         audio: true, 
-         video: jenis === 'video' 
-       });
-       if (jenis === 'video') {
-         document.getElementById('videoDekat').srcObject = streamLokal;
-       }
+       streamLokal = await navigator.mediaDevices.getUserMedia({ audio: true, video: jenis === 'video' });
+       if (jenis === 'video') document.getElementById('videoDekat').srcObject = streamLokal;
        peerConnection = new RTCPeerConnection(konfigurasiICE);
-       streamLokal.getTracks().forEach(track => peerConnection.addTrack(track, streamLokal));
-       peerConnection.ontrack = e => {
-         document.getElementById('videoJauh').srcObject = e.streams[0];
-       };
-       peerConnection.onicecandidate = async e => {
-         if (e.candidate) return;
-         await db.ref('panggilan/' + idPanggilanAktif + '/jawaban').set(
-           btoa(JSON.stringify(peerConnection.localDescription))
-         );
-       };
-       const tawaran = await peerConnection.createOffer();
-       await peerConnection.setLocalDescription(tawaran);
-       await db.ref('panggilan/' + idPanggilanAktif).set({
-         dari: namaSaya, jenis: jenis,
-         tawaran: btoa(JSON.stringify(tawaran)),
-         status: 'menunggu',
-         waktu: firebase.database.ServerValue.TIMESTAMP
-       });
+       streamLokal.getTracks().forEach(t => peerConnection.addTrack(t, streamLokal));
+       peerConnection.ontrack = e => { document.getElementById('videoJauh').srcObject = e.streams[0]; };
+       peerConnection.onicecandidate = async e => { if (e.candidate) return; await db.ref('panggilan/' + idPanggilanAktif + '/jawaban').set(btoa(JSON.stringify(peerConnection.localDescription))); };
+       const tawaran = await peerConnection.createOffer(); await peerConnection.setLocalDescription(tawaran);
+       await db.ref('panggilan/' + idPanggilanAktif).set({ dari: namaSaya, jenis: jenis, tawaran: btoa(JSON.stringify(tawaran)), status: 'menunggu', waktu: firebase.database.ServerValue.TIMESTAMP });
        db.ref('panggilan/' + idPanggilanAktif + '/jawaban').on('value', async snap => {
-         const data = snap.val();
-         if (!data || data === 'ditolak') {
-           document.getElementById('statusTelpon').textContent = 'Ditolak ❌';
-           setTimeout(() => akhiriTelpon(), 1500);
-           return;
-         }
-         if (data === 'dijawab') {
-           document.getElementById('statusTelpon').textContent = 'Terhubung! ✅';
-           return;
-         }
-         try {
-           const jawaban = JSON.parse(atob(data));
-           await peerConnection.setRemoteDescription(jawaban);
-           document.getElementById('statusTelpon').textContent = 'Terhubung! ✅';
-           await db.ref('panggilan/' + idPanggilanAktif + '/status').set('terhubung');
-         } catch(e) {}
+         const d = snap.val();
+         if (!d || d === 'ditolak') { document.getElementById('statusTelpon').textContent = 'Ditolak ❌'; setTimeout(() => akhiriTelpon(), 1500); return; }
+         if (d === 'dijawab') { document.getElementById('statusTelpon').textContent = 'Terhubung! ✅'; return; }
+         try { const j = JSON.parse(atob(d)); await peerConnection.setRemoteDescription(j); document.getElementById('statusTelpon').textContent = 'Terhubung! ✅'; } catch(e) {}
        });
-     } catch (err) {
-       alert('Butuh izin Kamera & Mikrofon ya! Izinkan dulu di browser.');
-     }
+     } catch (err) { alert('Butuh izin Kamera & Mikrofon ya!'); }
    }
    function pantauPanggilanMasuk() {
      db.ref('panggilan').orderByChild('status').equalTo('menunggu').on('child_added', async snap => {
-       const data = snap.val();
-       if (!data || data.dari === namaSaya) return;
-       idPanggilanAktif = snap.key;
-       jenisTelpon = data.jenis;
-       document.getElementById('namaPanggilan').textContent = data.dari;
-       document.getElementById('statusTelpon').textContent = 'Memanggil kamu... 📞';
+       const d = snap.val(); if (!d || d.dari === namaSaya) return;
+       idPanggilanAktif = snap.key; jenisTelpon = d.jenis;
+       document.getElementById('namaPanggilan').textContent = d.dari; document.getElementById('statusTelpon').textContent = 'Memanggil kamu... 📞';
        document.getElementById('modalTelpon').classList.add('aktif');
-       document.getElementById('btnTerima').style.display = 'inline-block';
-       document.getElementById('btnTolak').style.display = 'inline-block';
-       document.getElementById('btnAkhiri').style.display = 'none';
-       if (data.jenis === 'video') {
-         document.getElementById('modalTelpon').classList.add('video-mode');
-         document.getElementById('avatarTelpon').style.display = 'none';
-       } else {
-         document.getElementById('modalTelpon').classList.remove('video-mode');
-         document.getElementById('avatarTelpon').style.display = 'flex';
-       }
+       document.getElementById('btnTerima').style.display = 'inline-block'; document.getElementById('btnTolak').style.display = 'inline-block'; document.getElementById('btnAkhiri').style.display = 'none';
+       d.jenis === 'video' ? (document.getElementById('modalTelpon').classList.add('video-mode'), document.getElementById('avatarTelpon').style.display = 'none') : (document.getElementById('modalTelpon').classList.remove('video-mode'), document.getElementById('avatarTelpon').style.display = 'flex');
      });
    }
    async function terimaPanggilan() {
-     sedangTelpon = true;
-     document.getElementById('btnTerima').style.display = 'none';
-     document.getElementById('btnTolak').style.display = 'none';
-     document.getElementById('btnAkhiri').style.display = 'inline-block';
-     document.getElementById('statusTelpon').textContent = 'Terhubung! ✅';
+     sedangTelpon = true; document.getElementById('btnTerima').style.display = 'none'; document.getElementById('btnTolak').style.display = 'none'; document.getElementById('btnAkhiri').style.display = 'inline-block'; document.getElementById('statusTelpon').textContent = 'Terhubung! ✅';
      try {
-       streamLokal = await navigator.mediaDevices.getUserMedia({ 
-         audio: true, 
-         video: jenisTelpon === 'video' 
-       });
-       if (jenisTelpon === 'video') {
-         document.getElementById('videoDekat').srcObject = streamLokal;
-         document.getElementById('videoDekat').classList.add('tampil');
-         document.getElementById('videoJauh').classList.add('tampil');
-       }
+       streamLokal = await navigator.mediaDevices.getUserMedia({ audio: true, video: jenisTelpon === 'video' });
+       if (jenisTelpon === 'video') { document.getElementById('videoDekat').srcObject = streamLokal; document.getElementById('videoDekat').classList.add('tampil'); document.getElementById('videoJauh').classList.add('tampil'); }
        peerConnection = new RTCPeerConnection(konfigurasiICE);
-       streamLokal.getTracks().forEach(track => peerConnection.addTrack(track, streamLokal));
-       peerConnection.ontrack = e => {
-         document.getElementById('videoJauh').srcObject = e.streams[0];
-       };
-       peerConnection.onicecandidate = async e => {
-         if (e.candidate) return;
-         await db.ref('panggilan/' + idPanggilanAktif + '/jawaban').set(
-           btoa(JSON.stringify(peerConnection.localDescription))
-         );
-       };
+       streamLokal.getTracks().forEach(t => peerConnection.addTrack(t, streamLokal));
+       peerConnection.ontrack = e => { document.getElementById('videoJauh').srcObject = e.streams[0]; };
+       peerConnection.onicecandidate = async e => { if (e.candidate) return; await db.ref('panggilan/' + idPanggilanAktif + '/jawaban').set(btoa(JSON.stringify(peerConnection.localDescription))); };
        const snap = await db.ref('panggilan/' + idPanggilanAktif + '/tawaran').once('value');
-       const tawaran = JSON.parse(atob(snap.val()));
-       await peerConnection.setRemoteDescription(tawaran);
-       const jawaban = await peerConnection.createAnswer();
-       await peerConnection.setLocalDescription(jawaban);
+       const tawaran = JSON.parse(atob(snap.val())); await peerConnection.setRemoteDescription(tawaran);
+       const jawaban = await peerConnection.createAnswer(); await peerConnection.setLocalDescription(jawaban);
        await db.ref('panggilan/' + idPanggilanAktif + '/jawaban').set('dijawab');
-     } catch(err) {
-       alert('Butuh izin Kamera & Mikrofon ya!');
-     }
+     } catch(err) { alert('Butuh izin Kamera & Mikrofon ya!'); }
    }
-   function tolakPanggilan() {
-     db.ref('panggilan/' + idPanggilanAktif + '/jawaban').set('ditolak');
-     akhiriTelpon();
-   }
+   function tolakPanggilan() { db.ref('panggilan/' + idPanggilanAktif + '/jawaban').set('ditolak'); akhiriTelpon(); }
    function akhiriTelpon() {
-     sedangTelpon = false;
-     if (streamLokal) streamLokal.getTracks().forEach(t => t.stop());
-     if (peerConnection) peerConnection.close();
-     document.getElementById('modalTelpon').classList.remove('aktif');
-     document.getElementById('videoDekat').classList.remove('tampil');
-     document.getElementById('videoJauh').classList.remove('tampil');
-     if (idPanggilanAktif) db.ref('panggilan/' + idPanggilanAktif).remove();
-     idPanggilanAktif = null;
+     sedangTelpon = false; if (streamLokal) streamLokal.getTracks().forEach(t => t.stop()); if (peerConnection) peerConnection.close();
+     document.getElementById('modalTelpon').classList.remove('aktif'); document.getElementById('videoDekat').classList.remove('tampil'); document.getElementById('videoJauh').classList.remove('tampil');
+     if (idPanggilanAktif) db.ref('panggilan/' + idPanggilanAktif).remove(); idPanggilanAktif = null;
    }
  </script>
  </body>
- </html>
-  
+</html>

@@ -82,6 +82,11 @@
        border-radius: 8px;
        position: relative;
        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+       animation: fadeIn 0.3s ease;
+     }
+     @keyframes fadeIn {
+       from { opacity: 0; transform: translateY(10px); }
+       to { opacity: 1; transform: translateY(0); }
      }
      .pesan.kirim {
        background: #d9fdd3;
@@ -116,7 +121,48 @@
        border-radius: 6px;
        margin: 6px 0;
      }
-     /* === KOTAK KIRIM BAWAH === */
+     /* === TOMBOL HAPUS PESAN === */
+     .pesan .hapus-btn {
+       position: absolute;
+       top: -8px;
+       right: -8px;
+       width: 24px;
+       height: 24px;
+       border-radius: 50%;
+       background: #e74c3c;
+       color: white;
+       border: 2px solid white;
+       font-size: 12px;
+       line-height: 20px;
+       text-align: center;
+       cursor: pointer;
+       display: none;
+       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+       transition: transform 0.2s;
+     }
+     .pesan .hapus-btn:active {
+       transform: scale(0.85);
+     }
+     .pesan:hover .hapus-btn {
+       display: block;
+     }
+     .pesan.kirim .hapus-btn {
+       right: -8px;
+       left: auto;
+     }
+     .pesan.terima .hapus-btn {
+       left: -8px;
+       right: auto;
+     }
+     /* === EFEK HAPUS === */
+     .pesan.hapus-animasi {
+       animation: hapusAnim 0.4s ease forwards;
+     }
+     @keyframes hapusAnim {
+       0% { opacity: 1; transform: scale(1); }
+       100% { opacity: 0; transform: scale(0.8) translateX(-20px); }
+     }
+     /* === KOTAK KIRIM BAWAH — LEBIH KEREN === */
      .chat-input {
        position: fixed;
        bottom: 0; left: 0; right: 0;
@@ -126,6 +172,8 @@
        align-items: center;
        gap: 8px;
        border-top: 1px solid #ddd;
+       backdrop-filter: blur(10px);
+       background: rgba(240, 242, 245, 0.95);
      }
      .chat-input input[type="text"] {
        flex: 1;
@@ -136,6 +184,10 @@
        background: white;
        outline: none;
        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+       transition: box-shadow 0.3s, transform 0.2s;
+     }
+     .chat-input input[type="text"]:focus {
+       box-shadow: 0 0 0 2px #25d366, 0 2px 8px rgba(37, 211, 102, 0.3);
      }
      .chat-input .btn-foto, .chat-input .btn-kirim {
        width: 44px; height: 44px;
@@ -145,9 +197,62 @@
        font-size: 20px;
        cursor: pointer;
        flex-shrink: 0;
+       transition: transform 0.2s, box-shadow 0.3s;
      }
-     .btn-foto { background: #f0f2f5; color: #555; }
-     .btn-kirim { background: #25d366; color: white; }
+     .chat-input .btn-foto {
+       background: #f0f2f5;
+       color: #555;
+     }
+     .chat-input .btn-foto:active {
+       transform: scale(0.9);
+     }
+     .chat-input .btn-kirim {
+       background: #25d366;
+       color: white;
+       box-shadow: 0 2px 8px rgba(37, 211, 102, 0.4);
+     }
+     .chat-input .btn-kirim:active {
+       transform: scale(0.9);
+     }
+     /* === STIKER EMOJI === */
+     .emoji-picker {
+       position: fixed;
+       bottom: 80px;
+       left: 10px;
+       background: white;
+       border-radius: 12px;
+       box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+       padding: 12px;
+       display: none;
+       flex-wrap: wrap;
+       gap: 6px;
+       max-width: 260px;
+       z-index: 200;
+       border: 1px solid #eee;
+     }
+     .emoji-picker span {
+       font-size: 28px;
+       cursor: pointer;
+       padding: 4px;
+       border-radius: 8px;
+       transition: background 0.2s;
+       width: 40px;
+       text-align: center;
+     }
+     .emoji-picker span:hover {
+       background: #f0f2f5;
+     }
+     .btn-emoji {
+       width: 44px; height: 44px;
+       border-radius: 50%;
+       border: none;
+       background: #f0f2f5;
+       font-size: 22px;
+       cursor: pointer;
+       flex-shrink: 0;
+       transition: transform 0.2s;
+     }
+     .btn-emoji:active { transform: scale(0.9); }
    </style>
  </head>
  <body>
@@ -171,10 +276,26 @@
      </div>
    </div>
    <div id="daftarPesan"></div>
+   <!-- EMOJI PICKER -->
+   <div class="emoji-picker" id="emojiPicker">
+     <span onclick="tambahEmoji('😊')">😊</span>
+     <span onclick="tambahEmoji('😂')">😂</span>
+     <span onclick="tambahEmoji('🤣')">🤣</span>
+     <span onclick="tambahEmoji('❤️')">❤️</span>
+     <span onclick="tambahEmoji('🔥')">🔥</span>
+     <span onclick="tambahEmoji('👍')">👍</span>
+     <span onclick="tambahEmoji('🙏')">🙏</span>
+     <span onclick="tambahEmoji('👋')">👋</span>
+     <span onclick="tambahEmoji('😍')">😍</span>
+     <span onclick="tambahEmoji('🥰')">🥰</span>
+     <span onclick="tambahEmoji('😘')">😘</span>
+     <span onclick="tambahEmoji('💪')">💪</span>
+   </div>
    <div class="chat-input">
      <input type="file" id="inputFoto" accept="image/*" style="display:none;" onchange="pilihFoto(this)">
      <button class="btn-foto" onclick="document.getElementById('inputFoto').click()">📎</button>
-     <input type="text" id="inputPesan" placeholder="Ketik pesan...">
+     <button class="btn-emoji" onclick="toggleEmoji()">😀</button>
+     <input type="text" id="inputPesan" placeholder="Ketik pesan..." onkeydown="if(event.key==='Enter') kirimPesan()">
      <button class="btn-kirim" onclick="kirimPesan()">➤</button>
    </div>
  </div>
@@ -193,6 +314,8 @@
    firebase.initializeApp(firebaseConfig);
    const db = firebase.database();
    let namaSaya = "";
+   const pesanElements = new Map(); // simpan key -> element
+
    function masukObrolan() {
      namaSaya = document.getElementById('namaInput').value.trim();
      if (!namaSaya) { alert('Masukkan nama dulu!'); return; }
@@ -200,19 +323,26 @@
      document.getElementById('halamanMasuk').style.display = 'none';
      document.getElementById('halamanChat').style.display = 'block';
    }
+
    function kirimPesan() {
      const teks = document.getElementById('inputPesan').value.trim();
      if (!teks) return;
-     db.ref('pesan').push({
+     const ref = db.ref('pesan').push({
        nama: namaSaya,
        teks: teks,
        waktu: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})
      });
      document.getElementById('inputPesan').value = '';
    }
+
    function pilihFoto(input) {
      if (!input.files || !input.files[0]) return;
      const file = input.files[0];
+     if (file.size > 2 * 1024 * 1024) {
+       alert('Ukuran foto terlalu besar! Maksimal 2MB.');
+       input.value = '';
+       return;
+     }
      const reader = new FileReader();
      reader.onload = function(e) {
        db.ref('pesan').push({
@@ -224,28 +354,87 @@
      reader.readAsDataURL(file);
      input.value = '';
    }
+
+   function toggleEmoji() {
+     const picker = document.getElementById('emojiPicker');
+     picker.style.display = picker.style.display === 'flex' ? 'none' : 'flex';
+   }
+
+   function tambahEmoji(emoji) {
+     const input = document.getElementById('inputPesan');
+     input.value += emoji;
+     input.focus();
+     document.getElementById('emojiPicker').style.display = 'none';
+   }
+
+   function hapusPesan(key, element) {
+     if (!confirm('Hapus pesan ini?')) return;
+     // Animasi hapus
+     element.classList.add('hapus-animasi');
+     setTimeout(() => {
+       db.ref('pesan/' + key).remove()
+         .then(() => {
+           // Pesan berhasil dihapus dari database
+         })
+         .catch(err => {
+           alert('Gagal menghapus pesan: ' + err.message);
+           element.classList.remove('hapus-animasi');
+         });
+     }, 300);
+   }
+
    db.ref('pesan').on('child_added', function(snapshot) {
      const data = snapshot.val();
-     tampilkanPesan(data.nama, data.teks, data.foto, data.waktu);
+     const key = snapshot.key;
+     const element = tampilkanPesan(data.nama, data.teks, data.foto, data.waktu, key);
+     if (element) {
+       pesanElements.set(key, element);
+     }
    });
-   function tampilkanPesan(nama, teks, foto, waktu) {
+
+   db.ref('pesan').on('child_removed', function(snapshot) {
+     const key = snapshot.key;
+     const element = pesanElements.get(key);
+     if (element) {
+       element.remove();
+       pesanElements.delete(key);
+     }
+   });
+
+   function tampilkanPesan(nama, teks, foto, waktu, key) {
      const div = document.createElement('div');
      div.className = 'pesan ' + (nama === namaSaya ? 'kirim' : 'terima');
+     div.dataset.key = key;
      let isi = '';
      if (nama !== namaSaya) {
        isi += `<div class="nama">${nama}</div>`;
      }
      if (foto) {
-       isi += `<img src="${foto}" alt="foto">`;
+       isi += `<img src="${foto}" alt="foto" loading="lazy">`;
      }
      if (teks) {
        isi += `<div class="teks">${teks}</div>`;
      }
      isi += `<div class="waktu">${waktu}</div>`;
+     // Tombol hapus (hanya untuk pesan sendiri)
+     if (nama === namaSaya) {
+       isi += `<div class="hapus-btn" onclick="hapusPesan('${key}', this.parentElement)">✕</div>`;
+     }
      div.innerHTML = isi;
-     document.getElementById('daftarPesan').appendChild(div);
-     document.getElementById('daftarPesan').scrollTop = document.getElementById('daftarPesan').scrollHeight;
+     const container = document.getElementById('daftarPesan');
+     container.appendChild(div);
+     container.scrollTop = container.scrollHeight;
+     return div;
    }
+
+   // Tutup emoji picker jika klik di luar
+   document.addEventListener('click', function(e) {
+     const picker = document.getElementById('emojiPicker');
+     const btn = document.querySelector('.btn-emoji');
+     if (!picker.contains(e.target) && !btn.contains(e.target)) {
+       picker.style.display = 'none';
+     }
+   });
  </script>
  </body>
- </html>
+  </html>

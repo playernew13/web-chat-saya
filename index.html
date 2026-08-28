@@ -210,9 +210,19 @@
        background: #25d366;
        color: white;
        box-shadow: 0 2px 8px rgba(37, 211, 102, 0.4);
+       font-size: 22px;
      }
      .chat-input .btn-kirim:active {
        transform: scale(0.9);
+     }
+     .chat-input .btn-kirim svg {
+       width: 22px;
+       height: 22px;
+       fill: white;
+       transition: transform 0.3s;
+     }
+     .chat-input .btn-kirim:active svg {
+       transform: translateX(3px) translateY(-3px);
      }
      /* === STIKER EMOJI === */
      .emoji-picker {
@@ -296,7 +306,11 @@
      <button class="btn-foto" onclick="document.getElementById('inputFoto').click()">📎</button>
      <button class="btn-emoji" onclick="toggleEmoji()">😀</button>
      <input type="text" id="inputPesan" placeholder="Ketik pesan..." onkeydown="if(event.key==='Enter') kirimPesan()">
-     <button class="btn-kirim" onclick="kirimPesan()">➤</button>
+     <button class="btn-kirim" onclick="kirimPesan()">
+       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+         <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+       </svg>
+     </button>
    </div>
  </div>
  <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-app-compat.js"></script>
@@ -314,7 +328,7 @@
    firebase.initializeApp(firebaseConfig);
    const db = firebase.database();
    let namaSaya = "";
-   const pesanElements = new Map(); // simpan key -> element
+   const pesanElements = new Map();
 
    function masukObrolan() {
      namaSaya = document.getElementById('namaInput').value.trim();
@@ -369,13 +383,10 @@
 
    function hapusPesan(key, element) {
      if (!confirm('Hapus pesan ini?')) return;
-     // Animasi hapus
      element.classList.add('hapus-animasi');
      setTimeout(() => {
        db.ref('pesan/' + key).remove()
-         .then(() => {
-           // Pesan berhasil dihapus dari database
-         })
+         .then(() => {})
          .catch(err => {
            alert('Gagal menghapus pesan: ' + err.message);
            element.classList.remove('hapus-animasi');
@@ -416,7 +427,6 @@
        isi += `<div class="teks">${teks}</div>`;
      }
      isi += `<div class="waktu">${waktu}</div>`;
-     // Tombol hapus (hanya untuk pesan sendiri)
      if (nama === namaSaya) {
        isi += `<div class="hapus-btn" onclick="hapusPesan('${key}', this.parentElement)">✕</div>`;
      }
@@ -427,7 +437,6 @@
      return div;
    }
 
-   // Tutup emoji picker jika klik di luar
    document.addEventListener('click', function(e) {
      const picker = document.getElementById('emojiPicker');
      const btn = document.querySelector('.btn-emoji');
@@ -437,4 +446,4 @@
    });
  </script>
  </body>
-  </html>
+    </html>

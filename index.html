@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+ <html>
+ <head>
+   <title>Web Chat + Telponan Nyata</title>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <style>
+     * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+     body { background: #e5ddd5; min-height: 100vh; }
+     /* === HALAMAN LOGIN === */
+     #halamanMasuk {
+       display: flex; flex-direction: column; align-items: center; justify-content: center;
+       min-height: 100vh; background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+       color: white; padding: 20px;
+     }
+     #halamanMasuk h1 { font-size: 32px; margin-bottom: 8px; }
+     #dev-nama { font-size: 15px; opacity: 0.9; margin-bottom: 30px; font-style: italic; }
+     #halamanMasuk input {
+       width: 100%; max-width: 350px; padding: 16px 20px; border-radius: 12px;
+       border: none; font-size: 16px; background: white; color: #333;
+       box-shadow: 0 4px 15px rgba(0,0,0,0.15); margin-bottom: 15px;
+     }
+     #halamanMasuk button {
+       padding: 15px 45px; background: white; color: #6c5ce7; border: none;
+       border-radius: 12px; font-size: 17px; font-weight: 700; cursor: pointer;
+       box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: transform 0.2s; margin: 5px;
+     }
+     #halamanMasuk button:active { transform: scale(0.95); }
+     /* === HALAMAN CHAT === */
+     #halamanChat { display: none; min-height: 100vh; }
+     .chat-header {
+       background: #075e54; color: white; padding: 12px 16px;
+       display: flex; align-items: center; justify-content: space-between;
+       position: sticky; top: 0; z-index: 100;
+     }
+     .chat-header .kiri { display: flex; align-items: center; }
+     .chat-header .avatar {
+       width: 40px; height: 40px; border-radius: 50%; background: #128c7e;
+       display: flex; align-items: center; justify-content: center; font-size: 18px; margin-right: 12px;
+     }
+     .chat-header .info h3 { font-size: 16px; font-weight: 600; }
+     .chat-header .info p { font-size: 12px; opacity: 0.8; }
+     .chat-header .tombol-telpon { display: flex; gap: 12px; }
+     .chat-header .btn-telpon, .chat-header .btn-video {
+       width: 40px; height: 40px; border-radius: 50%; border: none;
+       display: flex; align-items: center; justify-content: center; font-size: 20px;
+       cursor: pointer; transition: all 0.2s;
+     }
+     .chat-header .btn-telpon { background: #25d366; color: white; }
+     .chat-header .btn-telpon:active { transform: scale(0.9); }
+     .chat-header .btn-video { background: #009688; color: white; }
+     .chat-header .btn-video:active { transform: scale(0.9); }
+     #daftarPesan {
+       padding: 16px; padding-bottom: 90px; min-height: calc(100vh - 130px);
+       background-color: #e5ddd5;
+     }
+     /* === BUBBLE PESAN === */
+     .pesan {
+       max-width: 75%; padding: 10px 14px; margin: 6px 0; border-radius: 8px;
+       position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.1); animation: fadeIn 0.3s ease;
+     }
+     @keyframes fadeIn {
+       from { opacity: 0; transform: translateY(10px); }
+       to { opacity: 1; transform: translateY(0); }
+     }
+     .pesan.kirim { background: #d9fdd3; margin-left: auto; border-radius: 8px 0 8px 8px; }
+     .pesan.terima { background: white; margin-right: auto; border-radius: 0 8px 8px 8px; }
+     .pesan .nama { font-size: 12px; font-weight: 600; color: #075e54; margin-bottom: 4px; }
+     .pesan .teks { font-size: 15px; line-height: 1.4; color: #333; word-wrap: break-word; }
+     .pesan .waktu { font-size: 10px; color: #999; text-align: right; margin-top: 4px; }
+     .pesan .foto-pesan {
+       max-width: 100%; border-radius: 6px; margin: 6px 0;
+       cursor: pointer; transition: transform 0.2s;
+     }
+     .pesan .foto-pesan:active { transform: scale(0.98); }
+     .pesan .hapus-btn {
+       position: absolute; top: -8px; right: -8px; width: 24px; height: 24px;
+       border-radius: 50%; background: #e74c3c; color: white; border: 2px solid white;
+       font-size: 12px; line-height: 20px; text-align: center; cursor: pointer;
+       display: none; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+     }
+     .pesan:hover .hapus-btn { display: block; }
+     .pesan.hapus-animasi { animation: hapusAnim 0.4s ease forwards; }
+     @keyframes hapusAnim {
+       0% { opacity: 1; transform: scale(1); }
+       100% { opacity: 0; transform: scale(0.8) translateX(-20px); }
+     }
+     /* === MODAL FOTO === */
+     #modalFoto {
+       display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+       background: rgba(0,0,0,0.95); z-index: 9998;
+       flex-direction: column; align-items: center; justify-content: center; padding: 20px;
+     }
+     #modalFoto.tampil { display: flex; }
+     #modalFoto .foto-besar { max-width: 100%; max-height: 75vh; border-radius: 8px; }
+     #modalFoto .tombol-bawah { display: flex; gap: 15px; margin-top: 20px; }
+     #modalFoto button, #modalFoto a {
+       padding: 12px 24px; border-radius: 8px; border: none; font-size: 15px;
+       font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; text-decoration: none;
+     }
+     #modalFoto .btn-tutup { background: #555; color: white; }
+     #modalFoto .btn-simpan { background: #25d366; color: white; }
+     /* === 📞 MODAL TELPONAN NYATA === */
+     #modalTelpon {
+       display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+       background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+       z-index: 9999; flex-direction: column; align-items: center; justify-content: center;
+       color: white; padding: 20px;
+     }
+     #modalTelpon.aktif { display: flex; }
+     #modalTelpon.video-mode { background: #000; }
+     /* Video Layar Penuh */
+     #videoJauh {
+       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+       object-fit: cover; background: #1a1a2e; display: none;
+     }
+     #videoJauh.tampil { display: block; }
+     #videoDekat {
+       position: absolute; bottom: 100px; right: 20px; width: 120px; height: 160px;
+       border-radius: 12px; border: 3px solid white; object-fit: cover;
+       box-shadow: 0 4px 20px rgba(0,0,0,0.5); display: none; z-index: 2;
+     }
+     #videoDekat.tampil { display: block; }
+     #modalTelpon .konten-telpon { position: relative; z-index: 1; text-align: center; }
+     #modalTelpon .status-telpon {
+       font-size: 20px; margin-bottom: 20px; animation: kedip 1.5s infinite;
+     }
+     @keyframes kedip {
+       0%, 100% { opacity: 1; }
+       50% { opacity: 0.4; }
+     }
+     #modalTelpon .avatar-besar {
+       width: 120px; height: 120px; border-radius: 50%; background: #25d366;
+       display: flex; align-items: center; justify-content: center; font-size: 60px; margin: 0 auto 20px;
+       box-shadow: 0 0 40px rgba(37, 211, 102, 0.4);
+     }
+     #modalTelpon .nama-panggilan { font-size: 28px; font-weight: 700; margin-bottom: 10px; }
+     #modalTelpon .tombol-telpon-bawah {
+       display: flex; gap: 25px; margin-top: 40px; justify-content: center;
+     }
+     #modalTelpon .btn-akhiri, #modalTelpon .btn-terima, #modalTelpon .btn-tolak {
+       width: 70px; height: 70px; border-radius: 50%; border: none; font-size: 28px;
+       cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.3); transition: transform 0.2s;
+     }
+     #modalTelpon .btn-akhiri { background: #ef4444; color: white; }
+     #modalTelpon .btn-terima { background: #22c55e; color: white; }
+     #modalTelpon .btn-tolak { background: #f59e0b; color: white; }
+     #modalTelpon button:active { transform: scale(0.9); }
+     /* === KOTAK KETIK === */
+.chat-input {
+       position: fixed; bottom: 0; left: 0; right: 0; background: #f0f2f5; padding: 10px 12px;
+       display: flex; align-items: center; gap: 8px; border-top: 1px solid #ddd;
+       backdrop-filter: blur(10px); background: rgba(240, 242, 245, 0.95);
+     }
+     .chat-input .btn-foto, .chat-input .btn-emoji {
+       width: 40px; height: 40px; border-radius: 50%; border: none;
+       display: flex; align-items: center; justify-content: center; font-size: 20px;
+       cursor: pointer; flex-shrink: 0; background: transparent; color: #555;
+     }
+     .chat-input .input-wrapper { flex: 1; position: relative; display: flex; align-items: center; }
+     .chat-input .input-wrapper input {
+       width: 100%; padding: 12px 50px 12px 16px; border-radius: 24px;
+       border: none; font-size: 15px; background: white; outline: none;
+       box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+     }
+     .chat-input .btn-kirim {
+       position: absolute; right: 8px; top: 50%; transform: translateY(-50%) scale(0.8);
+       width: 36px; height: 36px; border-radius: 50%; border: none;
+       display: flex; align-items: center; justify-content: center; cursor: pointer;
+       background: #ccc; color: transparent; opacity: 0; pointer-events: none;
+       transition: all 0.25s ease;
+     }
+     .chat-input .btn-kirim.aktif {
+       background: #25d366; color: white; opacity: 1; transform: translateY(-50%) scale(1);
+       pointer-events: auto; box-shadow: 0 2px 6px rgba(37, 211, 102, 0.4);
+     }
+     .chat-input .btn-kirim svg { width: 18px; height: 18px; fill: currentColor; }
+     /* === EMOJI === */
+     .emoji-picker {
+       position: fixed; bottom: 80px; left: 10px; background: white; border-radius: 12px;
+       box-shadow: 0 4px 20px rgba(0,0,0,0.15); padding: 12px; display: none;
+       flex-wrap: wrap; gap: 6px; max-width: 260px; z-index: 200; border: 1px solid #eee;
+     }
+     .emoji-picker span { font-size: 28px; cursor: pointer; padding: 4px; border-radius: 8px; transition: background 0.2s; width: 40px; text-align: center; }
+     .emoji-picker span:hover { background: #f0f2f5; }
+   </style>
+ </head>
+ <body>
+ <!-- HALAMAN LOGIN -->
+ <div id="halamanMasuk">
+   <h1>💬 Web Chat + 📞 Telponan Nyata</h1>
+   <p id="dev-nama">✨ Dibuat oleh • Xaverius ✨</p>
+   <input type="text" id="namaInput" placeholder="Masukkan nama kamu...">
+   <br>
+   <button onclick="masukObrolan()">💬 Masuk Obrolan</button>
+ </div>
+ <!-- HALAMAN CHAT -->
+ <div id="halamanChat">
+   <div class="chat-header">
+     <div class="kiri">
+       <div class="avatar">💬</div>
+       <div class="info">
+         <h3>Web Chat</h3>
+         <p>Terhubung dengan semua orang</p>
+       </div>
+     </div>
+     <div class="tombol-telpon">
+       <button class="btn-telpon" onclick="mulaiTelpon('suara')">📞</button>
+       <button class="btn-video" onclick="mulaiTelpon('video')">📹</button>
+     </div>
+   </div>
+   <div id="daftarPesan"></div>
+   <!-- MODAL FOTO -->
+   <div id="modalFoto" onclick="tutupFoto()">
+     <img id="fotoBesar" class="foto-besar" src="" alt="Foto">
+     <div class="tombol-bawah">
+       <button class="btn-tutup" onclick="event.stopPropagation(); tutupFoto()">❌ Tutup</button>
+       <a id="linkDownload" class="btn-simpan" href="" download="foto-chat.jpg" onclick="event.stopPropagation()">💾 Simpan</a>
+     </div>
+   </div>
+   <!-- 📞 MODAL TELPONAN NYATA -->
+   <div id="modalTelpon">
+     <video id="videoJauh" autoplay playsinline muted></video>
+     <video id="videoDekat" autoplay playsinline muted></video>
+     
+     <div class="konten-telpon">
+       <div class="avatar-besar" id="avatarTelpon">📞</div>
+       <div class="nama-panggilan" id="namaPanggilan">Memanggil...</div>
+       <div class="status-telpon" id="statusTelpon">Berdering...</div>
+       <div class="tombol-telpon-bawah" id="tombolTelpon">
+         <button class="btn-tolak" id="btnTolak" style="display:none" onclick="tolakPanggilan()">❌</button>
+         <button class="btn-terima" id="btnTerima" style="display:none" onclick="terimaPanggilan()">✅</button>
+         <button class="btn-akhiri" id="btnAkhiri" onclick="akhiriTelpon()">📞</button>
+       </div>
+     </div>
+   </div>
+   <div class="emoji-picker" id="emojiPicker">
+     <span onclick="tambahEmoji('😊')">😊</span><span onclick="tambahEmoji('😂')">😂</span><span onclick="tambahEmoji('🤣')">🤣</span>
+     <span onclick="tambahEmoji('❤️')">❤️</span><span onclick="tambahEmoji('🔥')">🔥</span><span onclick="tambahEmoji('👍')">👍</span>
+     <span onclick="tambahEmoji('🙏')">🙏</span><span onclick="tambahEmoji('👋')">👋</span><span onclick="tambahEmoji('😍')">😍</span>
+   </div>
+   <div class="chat-input">
+     <input type="file" id="inputFoto" accept="image/*" style="display:none;" onchange="pilihFoto(this)">
+     <button class="btn-foto" onclick="document.getElementById('inputFoto').click()">📎</button>
+     <button class="btn-emoji" onclick="toggleEmoji()">😀</button>
+     <div class="input-wrapper">
+       <input type="text" id="inputPesan" placeholder="Ketik pesan..." oninput="cekInputPesan()" onkeydown="if(event.key==='Enter') kirimPesan()">
+       <button class="btn-kirim" id="btnKirim" onclick="kirimPesan()">
+         <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+       </button>
+     </div>
+   </div>
+ </div>
+ <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-app-compat.js"></script>
+ <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-database-compat.js"></script>
+ <script>
+   const firebaseConfig = {
+     apiKey: "AIzaSyBQ0_bbQ1FPRUx1zwi57klC329AG7H9Fwk",
+     authDomain: "web-chat-saya.firebaseapp.com",
+     databaseURL: "https://web-chat-saya-default-rtdb.asia-southeast1.firebasedatabase.app/",
+     projectId: "web-chat-saya",
+     storageBucket: "web-chat-saya.firebasestorage.app",
+     messagingSenderId: "339753603338",
+     appId: "1:339753603338:web:89fa40e03f3ead1c7f1a2b"
+   };
+   firebase.initializeApp(firebaseConfig);
+   const db = firebase.database();
+   let namaSaya = "";
+   const pesanElements = new Map();
+   // 📞 VARIABEL TELPONAN WEB-RTC
+   let peerConnection;
+   let streamLokal;
+   let sedangTelpon = false;
+   let jenisTelpon = null;
+   let idPanggilanAktif = null;
+   // Server sinyal standar dunia (bisa dipakai gratis)
+   const konfigurasiICE = {
+     iceServers: [
+       { urls: "stun:stun.l.google.com:19302" },
+{ urls: "stun:stun1.l.google.com:19302" },
+       { urls: "stun:stun2.l.google.com:19302" }
+     ]
+   };
+   function masukObrolan() {
+     namaSaya = document.getElementById('namaInput').value.trim();
+     if (!namaSaya) { alert('Masukkan nama dulu!'); return; }
+     localStorage.setItem('namaPengguna', namaSaya);
+     document.getElementById('halamanMasuk').style.display = 'none';
+     document.getElementById('halamanChat').style.display = 'block';
+     pantauPanggilanMasuk();
+   }
+   function cekInputPesan() {
+     const teks = document.getElementById('inputPesan').value.trim();
+     document.getElementById('btnKirim').classList.toggle('aktif', teks.length > 0);
+   }
+   function kirimPesan() {
+     const teks = document.getElementById('inputPesan').value.trim();
+     if (!teks) return;
+     db.ref('pesan').push({
+       nama: namaSaya, teks: teks,
+       waktu: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})
+     });
+     document.getElementById('inputPesan').value = '';
+     cekInputPesan();
+   }
+   function pilihFoto(input) {
+     if (!input.files || !input.files[0]) return;
+     const file = input.files[0];
+     if (file.size > 5 * 1024 * 1024) { alert('Foto terlalu besar! Maksimal 5MB.'); input.value = ''; return; }
+     const reader = new FileReader();
+     reader.onload = function(e) {
+       db.ref('pesan').push({
+         nama: namaSaya, foto: e.target.result,
+         waktu: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})
+       });
+     };
+     reader.readAsDataURL(file);
+     input.value = '';
+   }
+   function bukaFoto(src) {
+     document.getElementById('fotoBesar').src = src;
+     document.getElementById('linkDownload').href = src;
+     document.getElementById('modalFoto').classList.add('tampil');
+   }
+   function tutupFoto() { document.getElementById('modalFoto').classList.remove('tampil'); }
+   function toggleEmoji() {
+     const picker = document.getElementById('emojiPicker');
+     picker.style.display = picker.style.display === 'flex' ? 'none' : 'flex';
+   }
+   function tambahEmoji(emoji) {
+     const input = document.getElementById('inputPesan');
+     input.value += emoji; input.focus(); cekInputPesan();
+     document.getElementById('emojiPicker').style.display = 'none';
+   }
+   function hapusPesan(key, element) {
+     if (!confirm('Hapus pesan ini?')) return;
+     element.classList.add('hapus-animasi');
+     setTimeout(() => {
+       db.ref('pesan/' + key).remove().catch(err => {
+         alert('Gagal hapus: ' + err.message);
+         element.classList.remove('hapus-animasi');
+       });
+     }, 300);
+   }
+   // 📞 MULAI TELPONAN
+   async function mulaiTelpon(jenis) {
+     jenisTelpon = jenis;
+     sedangTelpon = true;
+     idPanggilanAktif = namaSaya + '_' + Date.now();
+     document.getElementById('namaPanggilan').textContent = namaSaya;
+     document.getElementById('statusTelpon').textContent = 'Menunggu dijawab... 📞';
+     document.getElementById('modalTelpon').classList.add('aktif');
+     document.getElementById('btnTerima').style.display = 'none';
+     document.getElementById('btnTolak').style.display = 'none';
+     document.getElementById('btnAkhiri').style.display = 'inline-block';
+     if (jenis === 'video') {
+       document.getElementById('modalTelpon').classList.add('video-mode');
+       document.getElementById('avatarTelpon').style.display = 'none';
+       document.getElementById('videoDekat').classList.add('tampil');
+       document.getElementById('videoJauh').classList.add('tampil');
+     } else {
+       document.getElementById('modalTelpon').classList.remove('video-mode');
+       document.getElementById('avatarTelpon').style.display = 'flex';
+       document.getElementById('videoDekat').classList.remove('tampil');
+       document.getElementById('videoJauh').classList.remove('tampil');
+     }
+     try {
+       streamLokal = await navigator.mediaDevices.getUserMedia({ 
+         audio: true, 
+         video: jenis === 'video' 
+       });
+       if (jenis === 'video') {
+         document.getElementById('videoDekat').srcObject = streamLokal;
+       }
+       peerConnection = new RTCPeerConnection(konfigurasiICE);
+       streamLokal.getTracks().forEach(track => peerConnection.addTrack(track, streamLokal));
+       peerConnection.ontrack = e => {
+         document.getElementById('videoJauh').srcObject = e.streams[0];
+       };
+       peerConnection.onicecandidate = async e => {
+         if (e.candidate) return;
+         await db.ref('panggilan/' + idPanggilanAktif + '/jawaban').set(
+           btoa(JSON.stringify(peerConnection.localDescription))
+         );
+       };
+       const tawaran = await peerConnection.createOffer();
+       await peerConnection.setLocalDescription(tawaran);
+       await db.ref('panggilan/' + idPanggilanAktif).set({
+         dari: namaSaya,
+         jenis: jenis,
+         tawaran: btoa(JSON.stringify(tawaran)),
+         status: 'menunggu',
+         waktu: firebase.database.ServerValue.TIMESTAMP
+       });
+       db.ref('panggilan/' + idPanggilanAktif + '/jawaban').on('value', async snap => {
+         const data = snap.val();
+         if (!data || data === 'ditolak') {
+           document.getElementById('statusTelpon').textContent = 'Ditolak ❌';
+setTimeout(() => akhiriTelpon(), 1500);
+           return;
+         }
+         if (data === 'dijawab') {
+           document.getElementById('statusTelpon').textContent = 'Terhubung! ✅';
+           return;
+         }
+         try {
+           const jawaban = JSON.parse(atob(data));
+           await peerConnection.setRemoteDescription(jawaban);
+           document.getElementById('statusTelpon').textContent = 'Terhubung! ✅';
+           await db.ref('panggilan/' + idPanggilanAktif + '/status').set('terhubung');
+         } catch(e) {}
+       });
+     } catch (err) {
+       alert('Butuh izin Kamera & Mikrofon ya! Izinkan dulu di browser.');
+       akhiriTelpon();
+     }
+   }
+   // 📞 PANTAU PANGGILAN MASUK
+   function pantauPanggilanMasuk() {
+     db.ref('panggilan').on('child_added', async snap => {
+       const data = snap.val();
+       const key = snap.key;
+       if (!data || data.dari === namaSaya || data.status !== 'menunggu') return;
+       if (sedangTelpon) return;
+       idPanggilanAktif = key;
+       jenisTelpon = data.jenis;
+       sedangTelpon = true;
+       document.getElementById('namaPanggilan').textContent = data.dari;
+       document.getElementById('statusTelpon').textContent = 'Menelepon... 📞';
+       document.getElementById('modalTelpon').classList.add('aktif');
+       document.getElementById('btnTerima').style.display = 'inline-block';
+       document.getElementById('btnTolak').style.display = 'inline-block';
+       document.getElementById('btnAkhiri').style.display = 'none';
+       if (data.jenis === 'video') {
+         document.getElementById('modalTelpon').classList.add('video-mode');
+         document.getElementById('avatarTelpon').style.display = 'none';
+         document.getElementById('videoDekat').classList.add('tampil');
+         document.getElementById('videoJauh').classList.add('tampil');
+       } else {
+         document.getElementById('modalTelpon').classList.remove('video-mode');
+         document.getElementById('avatarTelpon').style.display = 'flex';
+         document.getElementById('videoDekat').classList.remove('tampil');
+         document.getElementById('videoJauh').classList.remove('tampil');
+       }
+       const tawaran = JSON.parse(atob(data.tawaran));
+       window.panggilanMasukData = { tawaran, key };
+     });
+     db.ref('panggilan').on('child_removed', snap => {
+       if (snap.key === idPanggilanAktif && sedangTelpon) {
+         akhiriTelpon();
+       }
+     });
+   }
+   // 📞 TERIMA PANGGILAN
+   async function terimaPanggilan() {
+     if (!window.panggilanMasukData) return;
+     const { tawaran, key } = window.panggilanMasukData;
+     document.getElementById('btnTerima').style.display = 'none';
+     document.getElementById('btnTolak').style.display = 'none';
+     document.getElementById('btnAkhiri').style.display = 'inline-block';
+     document.getElementById('statusTelpon').textContent = 'Terhubung! ✅';
+     try {
+       streamLokal = await navigator.mediaDevices.getUserMedia({ 
+         audio: true, 
+         video: jenisTelpon === 'video' 
+       });
+       if (jenisTelpon === 'video') {
+         document.getElementById('videoDekat').srcObject = streamLokal;
+       }
+       peerConnection = new RTCPeerConnection(konfigurasiICE);
+       streamLokal.getTracks().forEach(track => peerConnection.addTrack(track, streamLokal));
+       peerConnection.ontrack = e => {
+         document.getElementById('videoJauh').srcObject = e.streams[0];
+       };
+       peerConnection.onicecandidate = async e => {
+         if (e.candidate) return;
+         await db.ref('panggilan/' + key + '/jawaban').set(btoa(JSON.stringify(peerConnection.localDescription)));
+       };
+       await peerConnection.setRemoteDescription(tawaran);
+       const jawaban = await peerConnection.createAnswer();
+       await peerConnection.setLocalDescription(jawaban);
+       await db.ref('panggilan/' + key + '/jawaban').set('dijawab');
+       await db.ref('panggilan/' + key + '/status').set('terhubung');
+     } catch (err) {
+       alert('Butuh izin Kamera & Mikrofon ya! Izinkan dulu di browser.');
+       akhiriTelpon();
+     }
+   }
+   // 📞 TOLAK PANGGILAN
+   async function tolakPanggilan() {
+     if (!idPanggilanAktif) return;
+     await db.ref('panggilan/' + idPanggilanAktif + '/jawaban').set('ditolak');
+     await db.ref('panggilan/' + idPanggilanAktif + '/status').set('ditolak');
+     akhiriTelpon();
+   }
+   // 📞 AKHIRI TELPONAN
+   async function akhiriTelpon() {
+     sedangTelpon = false;
+     jenisTelpon = null;
+     if (streamLokal) {
+       streamLokal.getTracks().forEach(track => track.stop());
+       streamLokal = null;
+     }
+     if (peerConnection) {
+       peerConnection.close();
+       peerConnection = null;
+     }
+     if (idPanggilanAktif) {
+       await db.ref('panggilan/' + idPanggilanAktif).remove();
+       idPanggilanAktif = null;
+     }
+     document.getElementById('modalTelpon').classList.remove('aktif');
+     document.getElementById('modalTelpon').classList.remove('video-mode');
+     document.getElementById('videoJauh').srcObject = null;
+     document.getElementById('videoDekat').srcObject = null;
+     document.getElementById('videoJauh').classList.remove('tampil');
+     document.getElementById('videoDekat').classList.remove('tampil');
+     document.getElementById('avatarTelpon').style.display = 'flex';
+   }
+   db.ref('pesan').on('child_added', snapshot => {
+     const data = snapshot.val(), key = snapshot.key;
+     const el = tampilkanPesan(data.nama, data.teks, data.foto, data.waktu, key);
+     if (el) pesanElements.set(key, el);
+   });
+   db.ref('pesan').on('child_removed', snapshot => {
+     const key = snapshot.key, el = pesanElements.get(key);
+     if (el) { el.remove(); pesanElements.delete(key); }
+   });
+   function tampilkanPesan(nama, teks, foto, waktu, key) {
+     const div = document.createElement('div');
+     div.className = 'pesan ' + (nama === namaSaya ? 'kirim' : 'terima');
+     div.dataset.key = key;
+     let isi = '';
+     if (nama !== namaSaya) isi += `<div class="nama">${nama}</div>`;
+     if (foto) isi += `<img class="foto-pesan" src="${foto}" alt="foto" loading="lazy" onclick="bukaFoto('${foto}')">`;
+     if (teks) isi += `<div class="teks">${teks}</div>`;
+     isi += `<div class="waktu">${waktu}</div>`;
+     if (nama === namaSaya) isi += `<div class="hapus-btn" onclick="hapusPesan('${key}', this.parentElement)">✕</div>`;
+     div.innerHTML = isi;
+     document.getElementById('daftarPesan').appendChild(div);
+     document.getElementById('daftarPesan').scrollTop = document.getElementById('daftarPesan').scrollHeight;
+     return div;
+   }
+   document.addEventListener('click', e => {
+     const picker = document.getElementById('emojiPicker');
+     const btn = document.querySelector('.btn-emoji');
+     if (!picker.contains(e.target) && !btn.contains(e.target)) picker.style.display = 'none';
+   });
+ </script>
+ </body>
+ </html>

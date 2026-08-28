@@ -5,103 +5,179 @@
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <style>
-     * { box-sizing: border-box; font-family: sans-serif; }
-     body { 
-       max-width: 500px; 
-       margin: 0 auto; 
-       padding: 20px; 
-       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+     * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+     body { background: #e5ddd5; min-height: 100vh; }
+     /* === HALAMAN LOGIN — TETAP UNGU MENYALA === */
+     #halamanMasuk {
+       display: flex;
+       flex-direction: column;
+       align-items: center;
+       justify-content: center;
        min-height: 100vh;
-     }
-     #halamanMasuk { 
-       text-align: center; 
-       padding-top: 120px; 
+       background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
        color: white;
+       padding: 20px;
      }
-     #halamanMasuk h1 { 
-       font-size: 32px; 
-       margin-bottom: 10px;
-       text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+     #halamanMasuk h1 { font-size: 32px; margin-bottom: 8px; text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+     #dev-nama { font-size: 15px; opacity: 0.9; margin-bottom: 50px; font-style: italic; }
+     #halamanMasuk input {
+       width: 100%; max-width: 350px;
+       padding: 16px 20px;
+       border-radius: 12px;
+       border: none;
+       font-size: 16px;
+       background: white;
+       color: #333;
+       box-shadow: 0 4px 15px rgba(0,0,0,0.15);
      }
-     #dev-nama {
-       font-size: 14px;
-       opacity: 0.85;
-       margin-bottom: 40px;
-       font-style: italic;
-     }
-     #halamanChat { display: none; }
-     #daftarPesan { 
-       height: 550px; 
-       overflow-y: auto; 
-       padding: 15px; 
-       background: rgba(255,255,255,0.95); 
-       border-radius: 16px; 
-       margin-bottom: 15px; 
-       box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-     }
-     .input-bawah { display: flex; gap: 8px; align-items: center; }
-     input[type="text"] { 
-       flex: 1; 
-       padding: 14px 16px; 
-       border-radius: 12px; 
-       border: none; 
-       font-size: 16px; 
-       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-     }
-     button { 
-       padding: 14px 18px; 
-       background: #6c5ce7; 
-       color: white; 
-       border: none; 
-       border-radius: 12px; 
-       font-size: 16px; 
-       cursor: pointer; 
-       box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+     #halamanMasuk button {
+       margin-top: 25px;
+       padding: 15px 45px;
+       background: white;
+       color: #6c5ce7;
+       border: none;
+       border-radius: 12px;
+       font-size: 17px;
+       font-weight: 700;
+       cursor: pointer;
+       box-shadow: 0 4px 15px rgba(0,0,0,0.2);
        transition: transform 0.2s;
      }
-     button:active { transform: scale(0.95); }
-     .btn-foto { 
-       background: #2ecc71; 
-       padding: 14px 18px; 
-       font-size: 20px; 
+     #halamanMasuk button:active { transform: scale(0.95); }
+     /* === HALAMAN CHAT — GAYA WHATSAPP === */
+     #halamanChat { display: none; min-height: 100vh; }
+     /* === HEADER ATAS === */
+     .chat-header {
+       background: #075e54;
+       color: white;
+       padding: 12px 16px;
+       display: flex;
+       align-items: center;
+       position: sticky;
+       top: 0;
+       z-index: 100;
      }
-     .btn-masuk {
-       padding: 14px 40px;
-       font-size: 18px;
-       margin-top: 20px;
+     .chat-header .avatar {
+       width: 40px; height: 40px;
+       border-radius: 50%;
+       background: #128c7e;
+       display: flex; align-items: center; justify-content: center;
+       font-size: 18px; margin-right: 12px;
      }
-     .pesan { 
-       margin: 8px 0; 
-       padding: 12px 16px; 
-       background: #e8f0fe; 
-       border-radius: 16px; 
-       border-bottom-left-radius: 4px;
+     .chat-header .info h3 { font-size: 16px; font-weight: 600; }
+     .chat-header .info p { font-size: 12px; opacity: 0.8; }
+     /* === DAFTAR PESAN === */
+     #daftarPesan {
+       padding: 16px;
+       padding-bottom: 90px;
+       min-height: calc(100vh - 130px);
+       background-image: url("https://web.whatsapp.com/img/bg-chat-tile-dark_a4be512e7195b6b733d9110b408f075d.png");
+       background-color: #e5ddd5;
      }
-     .pesan img { max-width: 100%; border-radius: 12px; margin-top: 8px; }
+     /* === BUBBLE PESAN === */
+     .pesan {
+       max-width: 75%;
+       padding: 10px 14px;
+       margin: 6px 0;
+       border-radius: 8px;
+       position: relative;
+       box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+     }
+     .pesan.kirim {
+       background: #d9fdd3;
+       margin-left: auto;
+       border-radius: 8px 0 8px 8px;
+     }
+     .pesan.terima {
+       background: white;
+       margin-right: auto;
+       border-radius: 0 8px 8px 8px;
+     }
+     .pesan .nama {
+       font-size: 12px;
+       font-weight: 600;
+       color: #075e54;
+       margin-bottom: 4px;
+     }
+     .pesan .teks {
+       font-size: 15px;
+       line-height: 1.4;
+       color: #333;
+       word-wrap: break-word;
+     }
+     .pesan .waktu {
+       font-size: 10px;
+       color: #999;
+       text-align: right;
+       margin-top: 4px;
+     }
+     .pesan img {
+       max-width: 100%;
+       border-radius: 6px;
+       margin: 6px 0;
+     }
+     /* === KOTAK KIRIM BAWAH === */
+     .chat-input {
+       position: fixed;
+       bottom: 0; left: 0; right: 0;
+       background: #f0f2f5;
+       padding: 10px 12px;
+       display: flex;
+       align-items: center;
+       gap: 8px;
+       border-top: 1px solid #ddd;
+     }
+     .chat-input input[type="text"] {
+       flex: 1;
+       padding: 12px 16px;
+       border-radius: 24px;
+       border: none;
+       font-size: 15px;
+       background: white;
+       outline: none;
+       box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+     }
+     .chat-input .btn-foto, .chat-input .btn-kirim {
+       width: 44px; height: 44px;
+       border-radius: 50%;
+       border: none;
+       display: flex; align-items: center; justify-content: center;
+       font-size: 20px;
+       cursor: pointer;
+       flex-shrink: 0;
+     }
+     .btn-foto { background: #f0f2f5; color: #555; }
+     .btn-kirim { background: #25d366; color: white; }
    </style>
  </head>
  <body>
- <!-- HALAMAN MASUK -->
+ <!-- HALAMAN LOGIN — UNGU MENYALA + NAMA XAVERIUS -->
  <div id="halamanMasuk">
    <h1>💬 Web Chat</h1>
-   <p id="dev-nama">Dibuat oleh • Xaverius</p>
-   <p>Masuk untuk mulai mengobrol</p>
+   <p id="dev-nama">✨ Dibuat oleh • Xaverius ✨</p>
+   <p>Masukkan nama untuk mulai mengobrol</p>
    <br>
    <input type="text" id="namaInput" placeholder="Masukkan nama kamu...">
    <br><br>
-   <button class="btn-masuk" onclick="masukObrolan()">Masuk Obrolan</button>
+   <button onclick="masukObrolan()">Masuk Obrolan</button>
  </div>
- <!-- HALAMAN CHAT -->
+ <!-- HALAMAN CHAT — GAYA WHATSAPP -->
  <div id="halamanChat">
+   <div class="chat-header">
+     <div class="avatar">💬</div>
+     <div class="info">
+       <h3>Web Chat</h3>
+       <p>Terhubung dengan semua orang</p>
+     </div>
+   </div>
    <div id="daftarPesan"></div>
-   <div class="input-bawah">
+   <div class="chat-input">
      <input type="file" id="inputFoto" accept="image/*" style="display:none;" onchange="pilihFoto(this)">
-     <button class="btn-foto" onclick="document.getElementById('inputFoto').click()">📷</button>
+     <button class="btn-foto" onclick="document.getElementById('inputFoto').click()">📎</button>
      <input type="text" id="inputPesan" placeholder="Ketik pesan...">
-     <button onclick="kirimPesan()">Kirim</button>
+     <button class="btn-kirim" onclick="kirimPesan()">➤</button>
    </div>
  </div>
- <!-- FIREBASE -->
  <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-app-compat.js"></script>
  <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-database-compat.js"></script>
  <script>
@@ -116,21 +192,21 @@
    };
    firebase.initializeApp(firebaseConfig);
    const db = firebase.database();
+   let namaSaya = "";
    function masukObrolan() {
-     const nama = document.getElementById('namaInput').value.trim();
-     if (!nama) { alert('Masukkan nama dulu!'); return; }
-     localStorage.setItem('namaPengguna', nama);
+     namaSaya = document.getElementById('namaInput').value.trim();
+     if (!namaSaya) { alert('Masukkan nama dulu!'); return; }
+     localStorage.setItem('namaPengguna', namaSaya);
      document.getElementById('halamanMasuk').style.display = 'none';
      document.getElementById('halamanChat').style.display = 'block';
    }
    function kirimPesan() {
-     const nama = localStorage.getItem('namaPengguna') || 'Anonim';
      const teks = document.getElementById('inputPesan').value.trim();
      if (!teks) return;
      db.ref('pesan').push({
-       nama: nama,
+       nama: namaSaya,
        teks: teks,
-       waktu: new Date().toLocaleTimeString('id-ID')
+       waktu: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})
      });
      document.getElementById('inputPesan').value = '';
    }
@@ -139,11 +215,10 @@
      const file = input.files[0];
      const reader = new FileReader();
      reader.onload = function(e) {
-       const nama = localStorage.getItem('namaPengguna') || 'Anonim';
        db.ref('pesan').push({
-         nama: nama,
+         nama: namaSaya,
          foto: e.target.result,
-         waktu: new Date().toLocaleTimeString('id-ID')
+         waktu: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})
        });
      };
      reader.readAsDataURL(file);
@@ -155,10 +230,18 @@
    });
    function tampilkanPesan(nama, teks, foto, waktu) {
      const div = document.createElement('div');
-     div.className = 'pesan';
-     let isi = `<strong style="color:#6c5ce7">${nama}</strong> <span style="font-size:11px; color:#888; margin-left:8px">${waktu}</span>`;
-     if (foto) isi += `<br><img src="${foto}" alt="foto">`;
-     if (teks) isi += `<p style="margin:8px 0 0 0;">${teks}</p>`;
+     div.className = 'pesan ' + (nama === namaSaya ? 'kirim' : 'terima');
+     let isi = '';
+     if (nama !== namaSaya) {
+       isi += `<div class="nama">${nama}</div>`;
+     }
+     if (foto) {
+       isi += `<img src="${foto}" alt="foto">`;
+     }
+     if (teks) {
+       isi += `<div class="teks">${teks}</div>`;
+     }
+     isi += `<div class="waktu">${waktu}</div>`;
      div.innerHTML = isi;
      document.getElementById('daftarPesan').appendChild(div);
      document.getElementById('daftarPesan').scrollTop = document.getElementById('daftarPesan').scrollHeight;

@@ -73,6 +73,9 @@
        cursor: pointer; transition: transform 0.2s;
      }
      .pesan .foto-pesan:active { transform: scale(0.98); }
+     .pesan .audio-pesan {
+       max-width: 240px; margin: 6px 0; border-radius: 8px;
+     }
      .pesan .hapus-btn {
        position: absolute; top: -8px; right: -8px; width: 24px; height: 24px;
        border-radius: 50%; background: #e74c3c; color: white; border: 2px solid white;
@@ -147,16 +150,17 @@
      #modalTelpon .btn-tolak { background: #f59e0b; color: white; }
      #modalTelpon button:active { transform: scale(0.9); }
      /* === KOTAK KETIK === */
-.chat-input {
+     .chat-input {
        position: fixed; bottom: 0; left: 0; right: 0; background: #f0f2f5; padding: 10px 12px;
        display: flex; align-items: center; gap: 8px; border-top: 1px solid #ddd;
        backdrop-filter: blur(10px); background: rgba(240, 242, 245, 0.95);
      }
-     .chat-input .btn-foto, .chat-input .btn-emoji {
+     .chat-input .btn-foto, .chat-input .btn-audio, .chat-input .btn-emoji {
        width: 40px; height: 40px; border-radius: 50%; border: none;
        display: flex; align-items: center; justify-content: center; font-size: 20px;
        cursor: pointer; flex-shrink: 0; background: transparent; color: #555;
      }
+     .chat-input .btn-audio { color: #FFD700; }
      .chat-input .input-wrapper { flex: 1; position: relative; display: flex; align-items: center; }
      .chat-input .input-wrapper input {
        width: 100%; padding: 12px 50px 12px 16px; border-radius: 24px;
@@ -243,6 +247,11 @@
    <div class="chat-input">
      <input type="file" id="inputFoto" accept="image/*" style="display:none;" onchange="pilihFoto(this)">
      <button class="btn-foto" onclick="document.getElementById('inputFoto').click()">📎</button>
+     
+     <!-- 🎵 TOMBOL AUDIO BARU -->
+     <input type="file" id="inputAudio" accept="audio/*" style="display:none;" onchange="pilihAudio(this)">
+     <button class="btn-audio" onclick="document.getElementById('inputAudio').click()">🎵</button>
+     
      <button class="btn-emoji" onclick="toggleEmoji()">😀</button>
      <div class="input-wrapper">
        <input type="text" id="inputPesan" placeholder="Ketik pesan..." oninput="cekInputPesan()" onkeydown="if(event.key==='Enter') kirimPesan()">
@@ -268,6 +277,7 @@
    const db = firebase.database();
    let namaSaya = "";
    const pesanElements = new Map();
+   
    // 📞 VARIABEL TELPONAN WEB-RTC
    let peerConnection;
    let streamLokal;
@@ -278,18 +288,21 @@
    const konfigurasiICE = {
      iceServers: [
        { urls: "stun:stun.l.google.com:19302" },
-{ urls: "stun:stun1.l.google.com:19302" },
+       { urls: "stun:stun1.l.google.com:19302" },
        { urls: "stun:stun2.l.google.com:19302" }
      ]
    };
+   // === MASUK OBROLAN ===
    function masukObrolan() {
      namaSaya = document.getElementById('namaInput').value.trim();
      if (!namaSaya) { alert('Masukkan nama dulu!'); return; }
      localStorage.setItem('namaPengguna', namaSaya);
      document.getElementById('halamanMasuk').style.display = 'none';
      document.getElementById('halamanChat').style.display = 'block';
+     pantauPesan();
      pantauPanggilanMasuk();
    }
+   // === KIRIM PESAN TEKS ===
    function cekInputPesan() {
      const teks = document.getElementById('inputPesan').value.trim();
      document.getElementById('btnKirim').classList.toggle('aktif', teks.length > 0);
@@ -298,12 +311,13 @@
      const teks = document.getElementById('inputPesan').value.trim();
      if (!teks) return;
      db.ref('pesan').push({
-       nama: namaSaya, teks: teks,
+       nama: namaSaya, teks: teks, jenis: 'teks',
        waktu: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})
      });
      document.getElementById('inputPesan').value = '';
      cekInputPesan();
    }
+   // === 📸 KIRIM FOTO ===
    function pilihFoto(input) {
      if (!input.files || !input.files[0]) return;
      const file = input.files[0];
@@ -311,19 +325,71 @@
      const reader = new FileReader();
      reader.onload = function(e) {
        db.ref('pesan').push({
-         nama: namaSaya, foto: e.target.result,
+         nama: namaSaya, jenis: 'foto', foto: e.target.result,
          waktu: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})
        });
      };
      reader.readAsDataURL(file);
      input.value = '';
    }
+   // === 🎵 KIRIM AUDIO / PESAN SUARA ===
+   function pilihAudio(input) {
+     if (!input.files || !input.files[0]) return;
+     const file = input.files[0];
+     if (!file.type.startsWith('audio/')) { alert('Pilih file audio saja!'); input.value = ''; return; }
+     if (file.size > 8 * 1024 * 1024) { alert('Audio terlalu besar! Maksimal 8MB.'); input.value = ''; return; }
+     const reader = new FileReader();
+     reader.onload = function(e) {
+       db.ref('pesan').push({
+         nama: namaSaya, jenis: 'audio', audioUrl: e.target.result,
+         waktu: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})
+       });
+     };
+     reader.readAsDataURL(file);
+     input.value = '';
+   }
+   // === TAMPILKAN PESAN (TEKS / FOTO / AUDIO) ===
+   function tampilkanPesan(key, d) {
+     if (pesanElements.has(key)) return;
+     const div = document.createElement('div');
+     div.className = 'pesan ' + (d.nama === namaSaya ? 'kirim' : 'terima');
+     div.setAttribute('data-key', key);
+     if (d.jenis === 'audio') {
+       // === PESAN AUDIO ===
+       div.innerHTML = (d.nama !== namaSaya ? `<div class="nama">${d.nama}</div>` : '') +
+         `<audio controls class="audio-pesan" src="${d.audioUrl}">
+           Browser kamu tidak mendukung pemutar audio
+         ` +
+         `<div class="waktu">${d.waktu}${d.nama === namaSaya ? `<span class="hapus-btn" onclick="hapusPesan('${key}', this.parentElement)">×</span>` : ''}</div>`;
+     } else if (d.jenis === 'foto') {
+       // === PESAN FOTO ===
+       div.innerHTML = (d.nama !== namaSaya ? `<div class="nama">${d.nama}</div>` : '') +
+         `<img src="${d.foto}" class="foto-pesan" onclick="bukaFoto('${d.foto}')">` +
+         `<div class="waktu">${d.waktu}${d.nama === namaSaya ? `<span class="hapus-btn" onclick="hapusPesan('${key}', this.parentElement)">×</span>` : ''}</div>`;
+     } else {
+       // === PESAN TEKS BIASA ===
+       div.innerHTML = (d.nama !== namaSaya ? `<div class="nama">${d.nama}</div>` : '') +
+         `<div class="teks">${d.teks}</div>` +
+         `<div class="waktu">${d.waktu}${d.nama === namaSaya ? `<span class="hapus-btn" onclick="hapusPesan('${key}', this.parentElement)">×</span>` : ''}</div>`;
+     }
+     pesanElements.set(key, div);
+     document.getElementById('daftarPesan').appendChild(div);
+     document.getElementById('daftarPesan').scrollTop = document.getElementById('daftarPesan').scrollHeight;
+   }
+   // === PANTAU PESAN DARI FIREBASE ===
+   function pantauPesan() {
+     db.ref('pesan').limitToLast(50).on('child_added', snap => {
+       tampilkanPesan(snap.key, snap.val());
+     });
+   }
+   // === FOTO MODAL ===
    function bukaFoto(src) {
      document.getElementById('fotoBesar').src = src;
      document.getElementById('linkDownload').href = src;
      document.getElementById('modalFoto').classList.add('tampil');
    }
    function tutupFoto() { document.getElementById('modalFoto').classList.remove('tampil'); }
+   // === EMOJI ===
    function toggleEmoji() {
      const picker = document.getElementById('emojiPicker');
      picker.style.display = picker.style.display === 'flex' ? 'none' : 'flex';
@@ -333,6 +399,7 @@
      input.value += emoji; input.focus(); cekInputPesan();
      document.getElementById('emojiPicker').style.display = 'none';
    }
+   // === HAPUS PESAN ===
    function hapusPesan(key, element) {
      if (!confirm('Hapus pesan ini?')) return;
      element.classList.add('hapus-animasi');
@@ -342,8 +409,8 @@
          element.classList.remove('hapus-animasi');
        });
      }, 300);
-   }
-   // 📞 MULAI TELPONAN
+    }
+   // 📞 === TELPONAN ===
    async function mulaiTelpon(jenis) {
      jenisTelpon = jenis;
      sedangTelpon = true;
@@ -387,8 +454,7 @@
        const tawaran = await peerConnection.createOffer();
        await peerConnection.setLocalDescription(tawaran);
        await db.ref('panggilan/' + idPanggilanAktif).set({
-         dari: namaSaya,
-         jenis: jenis,
+         dari: namaSaya, jenis: jenis,
          tawaran: btoa(JSON.stringify(tawaran)),
          status: 'menunggu',
          waktu: firebase.database.ServerValue.TIMESTAMP
@@ -397,7 +463,7 @@
          const data = snap.val();
          if (!data || data === 'ditolak') {
            document.getElementById('statusTelpon').textContent = 'Ditolak ❌';
-setTimeout(() => akhiriTelpon(), 1500);
+           setTimeout(() => akhiriTelpon(), 1500);
            return;
          }
          if (data === 'dijawab') {
@@ -413,21 +479,16 @@ setTimeout(() => akhiriTelpon(), 1500);
        });
      } catch (err) {
        alert('Butuh izin Kamera & Mikrofon ya! Izinkan dulu di browser.');
-       akhiriTelpon();
      }
    }
-   // 📞 PANTAU PANGGILAN MASUK
    function pantauPanggilanMasuk() {
-     db.ref('panggilan').on('child_added', async snap => {
+     db.ref('panggilan').orderByChild('status').equalTo('menunggu').on('child_added', async snap => {
        const data = snap.val();
-       const key = snap.key;
-       if (!data || data.dari === namaSaya || data.status !== 'menunggu') return;
-       if (sedangTelpon) return;
-       idPanggilanAktif = key;
+       if (!data || data.dari === namaSaya) return;
+       idPanggilanAktif = snap.key;
        jenisTelpon = data.jenis;
-       sedangTelpon = true;
        document.getElementById('namaPanggilan').textContent = data.dari;
-       document.getElementById('statusTelpon').textContent = 'Menelepon... 📞';
+       document.getElementById('statusTelpon').textContent = 'Memanggil kamu... 📞';
        document.getElementById('modalTelpon').classList.add('aktif');
        document.getElementById('btnTerima').style.display = 'inline-block';
        document.getElementById('btnTolak').style.display = 'inline-block';
@@ -435,27 +496,14 @@ setTimeout(() => akhiriTelpon(), 1500);
        if (data.jenis === 'video') {
          document.getElementById('modalTelpon').classList.add('video-mode');
          document.getElementById('avatarTelpon').style.display = 'none';
-         document.getElementById('videoDekat').classList.add('tampil');
-         document.getElementById('videoJauh').classList.add('tampil');
        } else {
          document.getElementById('modalTelpon').classList.remove('video-mode');
          document.getElementById('avatarTelpon').style.display = 'flex';
-         document.getElementById('videoDekat').classList.remove('tampil');
-         document.getElementById('videoJauh').classList.remove('tampil');
-       }
-       const tawaran = JSON.parse(atob(data.tawaran));
-       window.panggilanMasukData = { tawaran, key };
-     });
-     db.ref('panggilan').on('child_removed', snap => {
-       if (snap.key === idPanggilanAktif && sedangTelpon) {
-         akhiriTelpon();
        }
      });
    }
-   // 📞 TERIMA PANGGILAN
    async function terimaPanggilan() {
-     if (!window.panggilanMasukData) return;
-     const { tawaran, key } = window.panggilanMasukData;
+     sedangTelpon = true;
      document.getElementById('btnTerima').style.display = 'none';
      document.getElementById('btnTolak').style.display = 'none';
      document.getElementById('btnAkhiri').style.display = 'inline-block';
@@ -467,6 +515,8 @@ setTimeout(() => akhiriTelpon(), 1500);
        });
        if (jenisTelpon === 'video') {
          document.getElementById('videoDekat').srcObject = streamLokal;
+         document.getElementById('videoDekat').classList.add('tampil');
+         document.getElementById('videoJauh').classList.add('tampil');
        }
        peerConnection = new RTCPeerConnection(konfigurasiICE);
        streamLokal.getTracks().forEach(track => peerConnection.addTrack(track, streamLokal));
@@ -475,78 +525,35 @@ setTimeout(() => akhiriTelpon(), 1500);
        };
        peerConnection.onicecandidate = async e => {
          if (e.candidate) return;
-         await db.ref('panggilan/' + key + '/jawaban').set(btoa(JSON.stringify(peerConnection.localDescription)));
+         await db.ref('panggilan/' + idPanggilanAktif + '/jawaban').set(
+           btoa(JSON.stringify(peerConnection.localDescription))
+         );
        };
+       const snap = await db.ref('panggilan/' + idPanggilanAktif + '/tawaran').once('value');
+       const tawaran = JSON.parse(atob(snap.val()));
        await peerConnection.setRemoteDescription(tawaran);
        const jawaban = await peerConnection.createAnswer();
        await peerConnection.setLocalDescription(jawaban);
-       await db.ref('panggilan/' + key + '/jawaban').set('dijawab');
-       await db.ref('panggilan/' + key + '/status').set('terhubung');
-     } catch (err) {
-       alert('Butuh izin Kamera & Mikrofon ya! Izinkan dulu di browser.');
-       akhiriTelpon();
+       await db.ref('panggilan/' + idPanggilanAktif + '/jawaban').set('dijawab');
+     } catch(err) {
+       alert('Butuh izin Kamera & Mikrofon ya!');
      }
    }
-   // 📞 TOLAK PANGGILAN
-   async function tolakPanggilan() {
-     if (!idPanggilanAktif) return;
-     await db.ref('panggilan/' + idPanggilanAktif + '/jawaban').set('ditolak');
-     await db.ref('panggilan/' + idPanggilanAktif + '/status').set('ditolak');
+   function tolakPanggilan() {
+     db.ref('panggilan/' + idPanggilanAktif + '/jawaban').set('ditolak');
      akhiriTelpon();
    }
-   // 📞 AKHIRI TELPONAN
-   async function akhiriTelpon() {
+   function akhiriTelpon() {
      sedangTelpon = false;
-     jenisTelpon = null;
-     if (streamLokal) {
-       streamLokal.getTracks().forEach(track => track.stop());
-       streamLokal = null;
-     }
-     if (peerConnection) {
-       peerConnection.close();
-       peerConnection = null;
-     }
-     if (idPanggilanAktif) {
-       await db.ref('panggilan/' + idPanggilanAktif).remove();
-       idPanggilanAktif = null;
-     }
+     if (streamLokal) streamLokal.getTracks().forEach(t => t.stop());
+     if (peerConnection) peerConnection.close();
      document.getElementById('modalTelpon').classList.remove('aktif');
-     document.getElementById('modalTelpon').classList.remove('video-mode');
-     document.getElementById('videoJauh').srcObject = null;
-     document.getElementById('videoDekat').srcObject = null;
-     document.getElementById('videoJauh').classList.remove('tampil');
      document.getElementById('videoDekat').classList.remove('tampil');
-     document.getElementById('avatarTelpon').style.display = 'flex';
+     document.getElementById('videoJauh').classList.remove('tampil');
+     if (idPanggilanAktif) db.ref('panggilan/' + idPanggilanAktif).remove();
+     idPanggilanAktif = null;
    }
-   db.ref('pesan').on('child_added', snapshot => {
-     const data = snapshot.val(), key = snapshot.key;
-     const el = tampilkanPesan(data.nama, data.teks, data.foto, data.waktu, key);
-     if (el) pesanElements.set(key, el);
-   });
-   db.ref('pesan').on('child_removed', snapshot => {
-     const key = snapshot.key, el = pesanElements.get(key);
-     if (el) { el.remove(); pesanElements.delete(key); }
-   });
-   function tampilkanPesan(nama, teks, foto, waktu, key) {
-     const div = document.createElement('div');
-     div.className = 'pesan ' + (nama === namaSaya ? 'kirim' : 'terima');
-     div.dataset.key = key;
-     let isi = '';
-     if (nama !== namaSaya) isi += `<div class="nama">${nama}</div>`;
-     if (foto) isi += `<img class="foto-pesan" src="${foto}" alt="foto" loading="lazy" onclick="bukaFoto('${foto}')">`;
-     if (teks) isi += `<div class="teks">${teks}</div>`;
-     isi += `<div class="waktu">${waktu}</div>`;
-     if (nama === namaSaya) isi += `<div class="hapus-btn" onclick="hapusPesan('${key}', this.parentElement)">✕</div>`;
-     div.innerHTML = isi;
-     document.getElementById('daftarPesan').appendChild(div);
-     document.getElementById('daftarPesan').scrollTop = document.getElementById('daftarPesan').scrollHeight;
-     return div;
-   }
-   document.addEventListener('click', e => {
-     const picker = document.getElementById('emojiPicker');
-     const btn = document.querySelector('.btn-emoji');
-     if (!picker.contains(e.target) && !btn.contains(e.target)) picker.style.display = 'none';
-   });
  </script>
  </body>
  </html>
+  

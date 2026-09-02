@@ -21,26 +21,26 @@
             overflow-x: hidden;
         }
 
-        /* === 🎥 VIDEO LATAR BELAKANG === */
+        /* === 🎥 VIDEO LATAR BELAKANG — DIPERBAIKI BIAR JELAS KELIHATAN! === */
         .video-bg {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             object-fit: cover;
             z-index: -2;
-            opacity: 0.35; /* Supaya teks tetap jelas */
+            opacity: 0.5; /* Lebih jelas kelihatan videonya */
         }
 
-        /* Lapisan gelap biar teks terbaca jelas */
+        /* Lapisan biar teks tetap terbaca jelas */
         .overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, rgba(15,15,35,0.85), rgba(26,26,60,0.85), rgba(45,27,105,0.85));
+            background: linear-gradient(135deg, rgba(15,15,35,0.75), rgba(26,26,60,0.75), rgba(45,27,105,0.75));
             z-index: -1;
         }
 
@@ -295,9 +295,10 @@
 </head>
 <body>
 
-<!-- 🎥 VIDEO LATAR BELAKANG — SUARA TIDAK DIMATIKAN! ✅ -->
-<video class="video-bg" autoplay muted loop playsinline>
-    <source src="https://cdn.videy.co/ZLxBOhDP1.mp4" type="video/mp4">
+<!-- 🎥 VIDEO LATAR BELAKANG — LINK BARU + DIPERBAIKI BIAR KELIHATAN! ✅ -->
+<video class="video-bg" autoplay loop playsinline>
+    <source src="https://cdn.videy.co/Jg8gagdz1.mp4" type="video/mp4">
+    Browser kamu tidak mendukung video.
 </video>
 <div class="overlay"></div>
 
@@ -376,5 +377,5 @@
 </script>
 
 </body>
-    </html>
-            
+        </html>
+    

@@ -21,35 +21,6 @@
             overflow-x: hidden;
         }
 
-        /* === 🎥 VIDEO LATAR BELAKANG — DIPERBAIKI BIAR PASTI KELIHATAN! === */
-        .video-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -2;
-            background: linear-gradient(135deg, #0f0f23, #1a1a3c, #2d1b69);
-        }
-
-        .video-bg {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0.6; /* Lebih jelas videonya */
-        }
-
-        /* Lapisan gelap biar teks tetap terbaca jelas */
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(15,15,35,0.70), rgba(26,26,60,0.70), rgba(45,27,105,0.70));
-            z-index: -1;
-        }
-
         .container {
             max-width: 450px;
             margin: 0 auto;
@@ -76,6 +47,7 @@
         .header p {
             color: #ccc;
             font-size: 15px;
+,
         }
 
         /* === KARD PEMBAYARAN === */
@@ -83,16 +55,38 @@
             background: rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(24px);
             border-radius: 24px;
-            padding: 30px 25px;
+            padding: 25px 20px;
             border: 1px solid rgba(255, 255, 255, 0.15);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 40px rgba(121, 40, 202, 0.15);
             margin-bottom: 25px;
         }
 
+        /* === 🎥 VIDEO DI ATAS QRIS === */
+        .top-video-box {
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .top-video {
+            width: 100%;
+            max-width: 380px;
+            height: 220px;
+            border-radius: 16px;
+            object-fit: cover;
+            box-shadow: 0 4px 20px rgba(0, 200, 255, 0.25);
+            border: 2px solid rgba(0, 212, 255, 0.35);
+        }
+
+        .video-note:global {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 10px;
+        }
+
         /* === QRIS === */
         .qris-section {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
 
         .qris-label {
@@ -301,28 +295,28 @@
 </head>
 <body>
 
-<!-- 🎥 VIDEO LATAR BELAKANG — PASTI KELIHATAN + BISA PLAY + SUARA BISA DINYALAKAN! ✅ -->
-<div class="video-container">
-    <video class="video-bg" id="videoBg" loop playsinline controls>
-        <source src="https://cdn.videy.co/Jg8gagdz1.mp4" type="video/mp4">
-        Browser kamu tidak mendukung video.
-    </video>
-</div>
-<div class="overlay"></div>
-
 <div class="container">
     <!-- HEADER -->
     <div class="header">
-        <h1>💳 Pembayaran</h1>
+        <h1>💳 Pembayaran</td>
         <p>Silakan lakukan pembayaran melalui metode di bawah ini</p>
     </div>
 
     <!-- KARD PEMBAYARAN -->
     <div class="payment-card">
         
+        <!-- 🎥 VIDEO BARU DI ATAS QRIS -->
+        <div class="top-video-box">
+            <video class="top-video" id="topVideo" loop playsinline controls>
+                <source src="https://cdn.videy.co/ZLxBOhDP1.mp4" type="video/mp4">
+                Browser kamu tidak mendukung video.
+            </video>
+            <p class="video-note">🔊 Klik ikon speaker di video untuk nyalakan suara</p>
+        </div>
+
         <!-- QRIS -->
         <div class="qris-section">
-            <div class="qris-label">📱 QRIS — Untuk Semua</div>
+            <div class="qris-label">📱 QRIS</td>
             <div class="qris-box">
                 <img src="https://i.ibb.co/g1mZnq5/img-1788362928574.jpg" class="qris-img" alt="QRIS" loading="lazy">
             </div>
@@ -343,9 +337,9 @@
 
         <div class="method-box">
             <div class="method-header">
-                <div class="method-icon">💙</div>
-                <div class="method-name">DANA</div>
-                <div class="method-badge">Utama</div>
+                <div class="method-icon">💙</td>
+                <div class="method-name">DANA</td>
+                <div class="method-badge">Utama</td>
             </div>
             <div class="method-number" id="nomorDana">0815-4550-1924</div>
             <div class="method-holder">a.n. Xav|Dynasty</div>
@@ -385,6 +379,5 @@
 </script>
 
 </body>
-                </html>
-
-            
+    </html>
+    

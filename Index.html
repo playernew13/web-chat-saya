@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎬 X-Tream Video Player</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0f23, #1a1a3c, #251550);
+            min-height: 100vh;
+            padding: 20px 16px;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        /* === HEADER === */
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            font-size: 26px;
+            background: linear-gradient(90deg, #ff4d6d, #7b2cbf, #c77dff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .header p {
+            color: #b0b0d0;
+            font-size: 15px;
+        }
+
+        .video-count {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(123, 44, 191, 0.2);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #d8b4fe;
+            margin-top: 12px;
+        }
+
+        /* === 🎥 VIDEO PLAYER === */
+        .player-card {
+            background: rgba(30, 25, 50, 0.9);
+            border-radius: 20px;
+            padding: 15px;
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 30px rgba(123, 44, 191, 0.15);
+            margin-bottom: 25px;
+        }
+
+        .video-wrapper {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #1a1a2e;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            border: 2px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .video-placeholder {
+            text-align: center;
+            color: #6b7280;
+        }
+
+        .video-placeholder svg {
+            width: 70px;
+            height: 70px;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        #mainVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: none;
+        }
+
+        /* === PILIH VIDEO === */
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .date-filter {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: rgba(139, 92, 246, 0.15);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            color: #d8b4fe;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .filter-btn.primary {
+            background: linear-gradient(90deg, #7b2cbf, #9d4edd);
+            border: none;
+            color: white;
+            box-shadow: 0 4px 12px rgba(123, 44, 191, 0.35);
+        }
+
+        /* === PLAYLIST === */
+        .playlist-card {
+            background: rgba(30, 25, 50, 0.9);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            margin-bottom: 20px;
+        }
+
+        .playlist-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .playlist-title {
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .playlist-count {
+            font-size: 14px;
+            color: #9ca3af;
+            margin-left: 6px;
+            font-weight: 400;
+        }
+
+        .clear-btn {
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .clear-btn:hover {
+            background: rgba(255, 107, 107, 0.2);
+        }
+
+        .video-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .video-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .video-list::-webkit-scrollbar-thumb {
+            background: #7b2cbf;
+            border-radius: 4px;
+        }
+
+        .video-item {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 12px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .video-item:hover, .video-item.active {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: rgba(139, 92, 246, 0.5);
+            transform: translateX(4px);
+        }
+
+        .video-item-thumb {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #7b2cbf, #9d4edd);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .video-item-info {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .video-item-name {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .video-item-link {
+            font-size: 11px;
+            color: #9ca3af;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .video-item-delete {
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* === TAMBAH VIDEO === */
+        .add-btn {
+            width: 100%;
+            background: linear-gradient(90deg, #7b2cbf, #9d4edd);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(123, 44, 191, 0.35);
+        }
+
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(123, 44, 191, 0.5);
+        }
+
+        /* === MODAL FORM === */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal {
+            background: linear-gradient(135deg, #1e1b4b, #2d1b69);
+            border-radius: 20px;
+            padding: 25px;
+            width: 100%;
+            max-width: 420px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal h3 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #d8b4fe;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            color: #c4b5fd;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            background: rgba(30, 25, 50, 0.8);
+            color: white;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: #9d4edd;
+            box-shadow: 0 0 0 3px rgba(157, 78, 221, 0.2);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .modal-btn.cancel {
+            background: rgba(107, 114, 128, 0.2);
+            color: #d1d5db;
+        }
+
+        .modal-btn.cancel:hover {
+            background: rgba(107, 114, 128, 0.3);
+        }
+
+        .modal-btn.save {
+            background: linear-gradient(90deg, #7b2cbf, #9d4edd);
+            color: white;
+            box-shadow: 0 4px 12px rgba(123, 44, 191, 0.35);
+        }
+
+        .modal-btn.save:hover {
+            transform: translateY(-1px);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px 15px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- HEADER -->
+    <div class="header">
+        <h1>🎬 X-Tream Player</h1>
+        <p>Tonton video favoritmu dengan kualitas terbaik</p>
+        <div class="video-count">
+            <span>🎯</span>
+            <span id="totalVideo">0 Video</span>
+        </div>
+    </div>
+
+    <!-- 🎥 VIDEO PLAYER -->
+    <div class="player-card">
+        <div class="video-wrapper">
+            <div class="video-placeholder" id="videoPlaceholder">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
+                    <path d="M9.5 15.5v-7l5.5 3.5-5.5 3.5z"/>
+                </svg>
+                <p>Silakan pilih video dari playlist</p>
+            </div>
+            <video id="mainVideo" controls playsinline>
+                Browser kamu tidak mendukung video.
+            </video>
+        </div>
+    </div>
+
+    <!-- PILIH VIDEO -->
+    <h2 class="section-title">📂 Pilih video dari playlist</h2>
+    <div class="date-filter">
+        <button class="filter-btn">📅 Tanggal</button>
+        <button class="filter-btn">⏰ Terbaru</button>
+        <button class="filter-btn primary">🎬 Siap Tayang</button>
+    </div>
+
+    <!-- PLAYLIST -->
+    <div class="playlist-card">
+        <div class="playlist-header">
+            <h3 class="playlist-title">
+                📋 Playlist
+                <span class="playlist-count" id="playlistCount">0 video</span>
+            </h3>
+            <button class="clear-btn" onclick="hapusSemua()">🗑️ Hapus Semua</button>
+        </div>
+
+        <div class="video-list" id="videoList">
+            <div class="empty-state">Belum ada video. Klik tombol di bawah untuk tambah!</div>
+        </div>
+
+        <button class="add-btn" onclick="bukaModal()">➕ Tambah Video Baru</button>
+    </div>
+</div>
+
+<!-- === MODAL TAMBAH VIDEO === -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+        <h3>➕ Tambah Video Baru</h3>
+        <div class="form-group">
+            <label>Nama Video</label>
+            <input type="text" id="videoName" placeholder="Contoh: Film Keren - Part 1">
+        </div>
+        <div class="form-group">
+            <label>Link Video (MP4)</label>
+            <input type="url" id="videoLink" placeholder="https://.../video.mp4">
+        </div>
+        <div class="modal-buttons">
+            <button class="modal-btn cancel" onclick="tutupModal()">❌ Batal</button>
+            <button class="modal-btn save" onclick="simpanVideo()">✅ Simpan</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let playlist = [];
+    let videoIndex = -1;
+
+    // Ambil data dari localStorage
+    function muatPlaylist() {
+        const simpan = localStorage.getItem('xtreamPlaylist');
+        if (simpan) {
+            playlist = JSON.parse(simpan);
+            renderPlaylist();
+        }
+    }
+
+    // Simpan ke localStorage
+    function simpanPlaylist() {
+        localStorage.setItem('xtreamPlaylist', JSON.stringify(playlist));
+    }
+
+    // Buka/Tutup Modal
+    function bukaModal() {
+        document.getElementById('modalOverlay').style.display = 'flex';
+        document.getElementById('videoName').value = '';
+        document.getElementById('videoLink').value = '';
+    }
+
+    function tutupModal() {
+        document.getElementById('modalOverlay').style.display = 'none';
+    }
+
+    // Simpan Video Baru
+    function simpanVideo() {
+        const nama = document.getElementById('videoName').value.trim();
+        const link = document.getElementById('videoLink').value.trim();
+
+        if (!nama || !link) {
+            alert('⚠️ Isi Nama dan Link Video dulu!');
+            return;
+        }
+
+        playlist.push({ nama, link });
+        simpanPlaylist();
+        renderPlaylist();
+        tutupModal();
+    }
+
+    // Render Daftar Video
+    function renderPlaylist() {
+        const list = document.getElementById('videoList');
+        document.getElementById('totalVideo').textContent = playlist.length + ' Video';
+        document.getElementById('playlistCount').textContent = playlist.length + ' video';
+
+        if (playlist.length === 0) {
+            list.innerHTML = '<div class="empty-state">Belum ada video. Klik tombol di bawah untuk tambah!</div>';
+            return;
+        }
+
+        list.innerHTML = playlist.map((item, idx) => `
+            <div class="video-item ${videoIndex === idx ? 'active' : ''}" onclick="mainkanVideo(${idx})">
+                <div class="video-item-thumb">▶</div>
+                <div class="video-item-info">
+                    <div class="video-item-name">${item.nama}</div>
+                    <div class="video-item-link">${item.link.substring(0, 35)}...</div>
+                </div>
+                <button class="video-item-delete" onclick="event.stopPropagation(); hapusVideo(${idx})">🗑️</button>
+            </div>
+        `).join('');
+    }
+
+    // Mainkan Video
+    function mainkanVideo(idx) {
+        videoIndex = idx;
+        const video = playlist[idx];
+        const player = document.getElementById('mainVideo');
+        const placeholder = document.getElementById('videoPlaceholder');
+
+        player.src = video.link;
+        placeholder.style.display = 'none';
+        player.style.display = 'block';
+        player.play().catch(e => console.log('Autoplay diblokir browser'));
+
+        renderPlaylist();
+    }
+
+    // Hapus Satu Video
+    function hapusVideo(idx) {
+        if (!confirm('Yakin mau hapus video ini?')) return;
+        playlist.splice(idx, 1);
+        
+        // Kalau video yang sedang diputar dihapus
+        if (videoIndex === idx) {
+            document.getElementById('mainVideo').src = '';
+            document.getElementById('mainVideo').style.display = 'none';
+            document.getElementById('videoPlaceholder').style.display = 'block';
+            videoIndex = -1;
+        } else if (videoIndex > idx) {
+            videoIndex--;
+        }
+
+        simpanPlaylist();
+        renderPlaylist();
+    }
+
+    // Hapus Semua
+    function hapusSemua() {
+        if (!confirm('Yakin mau hapus SEMUA video?')) return;
+        playlist = [];
+        videoIndex = -1;
+        document.getElementById('mainVideo').src = '';
+        document.getElementById('mainVideo').style.display = 'none';
+        document.getElementById('videoPlaceholder').style.display = 'block';
+        simpanPlaylist();
+        renderPlaylist();
+    }
+
+    // Klik luar modal untuk tutup
+    document.getElementById('modalOverlay').addEventListener('click', function(e) {
+        if (e.target === this) tutupModal();
+    });
+
+    // Muat saat halaman dibuka
+    muatPlaylist();
+</script>
+
+</body>
+  </html>
+  

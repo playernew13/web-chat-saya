@@ -47,7 +47,6 @@
         .header p {
             color: #ccc;
             font-size: 15px;
-,
         }
 
         /* === KARD PEMBAYARAN === */
@@ -61,7 +60,7 @@
             margin-bottom: 25px;
         }
 
-        /* === 🎥 VIDEO DI ATAS QRIS === */
+        /* === 🎥 VIDEO DI ATAS QRIS — RAPI! === */
         .top-video-box {
             margin-bottom: 25px;
             text-align: center;
@@ -75,12 +74,6 @@
             object-fit: cover;
             box-shadow: 0 4px 20px rgba(0, 200, 255, 0.25);
             border: 2px solid rgba(0, 212, 255, 0.35);
-        }
-
-        .video-note:global {
-            font-size: 12px;
-            color: #aaa;
-            margin-top: 10px;
         }
 
         /* === QRIS === */
@@ -260,7 +253,7 @@
             border-color: #00ff88;
         }
 
-        /* === CATATAN === */
+        /* === CATATAN PENTING === */
         .note-box {
             background: rgba(255, 170, 0, 0.08);
             border: 1px solid rgba(255, 170, 0, 0.2);
@@ -298,25 +291,24 @@
 <div class="container">
     <!-- HEADER -->
     <div class="header">
-        <h1>💳 Pembayaran</td>
+        <h1>💳 Pembayaran</h1>
         <p>Silakan lakukan pembayaran melalui metode di bawah ini</p>
     </div>
 
     <!-- KARD PEMBAYARAN -->
     <div class="payment-card">
         
-        <!-- 🎥 VIDEO BARU DI ATAS QRIS -->
+        <!-- 🎥 VIDEO — TANPA CATATAN DI BAWAHNYA! ✅ -->
         <div class="top-video-box">
             <video class="top-video" id="topVideo" loop playsinline controls>
                 <source src="https://cdn.videy.co/ZLxBOhDP1.mp4" type="video/mp4">
                 Browser kamu tidak mendukung video.
             </video>
-            <p class="video-note">🔊 Klik ikon speaker di video untuk nyalakan suara</p>
         </div>
 
         <!-- QRIS -->
         <div class="qris-section">
-            <div class="qris-label">📱 QRIS</td>
+            <div class="qris-label">📱 QRIS — Untuk Semua</div>
             <div class="qris-box">
                 <img src="https://i.ibb.co/g1mZnq5/img-1788362928574.jpg" class="qris-img" alt="QRIS" loading="lazy">
             </div>
@@ -337,9 +329,9 @@
 
         <div class="method-box">
             <div class="method-header">
-                <div class="method-icon">💙</td>
-                <div class="method-name">DANA</td>
-                <div class="method-badge">Utama</td>
+                <div class="method-icon">💙</div>
+                <div class="method-name">DANA</div>
+                <div class="method-badge">Utama</div>
             </div>
             <div class="method-number" id="nomorDana">0815-4550-1924</div>
             <div class="method-holder">a.n. Xav|Dynasty</div>

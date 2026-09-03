@@ -28,7 +28,7 @@
             z-index: 1;
         }
 
-        /* === NAVIGASI TAB === */
+        /* === NAVIGASI TAB — SEKARANG 3 TAB! === */
         .tabs {
             display: flex;
             background: rgba(255, 255, 255, 0.08);
@@ -40,12 +40,12 @@
 
         .tab-btn {
             flex: 1;
-            padding: 12px 10px;
+            padding: 12px 8px;
             border-radius: 12px;
             border: none;
             background: transparent;
             color: #aaa;
-            font-size: 15px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -102,7 +102,7 @@
             margin-bottom: 25px;
         }
 
-        /* === HALAMAN TOKO — PRODUK === */
+        /* === HALAMAN UMUM === */
         .page {
             display: none;
         }
@@ -120,10 +120,12 @@
             gap: 8px;
         }
 
+        /* === PRODUK === */
         .product-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
+            margin-bottom: 25px;
         }
 
         .product-card {
@@ -177,7 +179,129 @@
             transform: scale(1.03);
         }
 
-        /* === 🎥 VIDEO DI ATAS QRIS === */
+        /* === VIP BOX === */
+        .vip-box {
+            background: linear-gradient(135deg, rgba(121, 40, 202, 0.2), rgba(0, 212, 255, 0.15));
+            border: 2px solid rgba(157, 78, 221, 0.4);
+            border-radius: 18px;
+            padding: 20px;
+            margin-top: 10px;
+        }
+
+        .vip-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #d8b4fe;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .vip-benefit {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .vip-benefit span {
+            font-size: 18px;
+        }
+
+        /* === 📱 HALAMAN DEV / KONTAK === */
+        .dev-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #7928ca, #00d4ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 45px;
+            margin: 0 auto 20px;
+            box-shadow: 0 0 25px rgba(121, 40, 202, 0.4);
+        }
+
+        .dev-name {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            background: linear-gradient(90deg, #00d4ff, #7928ca);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .dev-role {
+            text-align: center;
+            color: #aaa;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .contact-box {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 12px;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .contact-box:hover {
+            border-color: rgba(0, 212, 255, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0, 200, 255, 0.2);
+        }
+
+        .contact-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            flex-shrink: 0;
+        }
+
+        .contact-wa {
+            background: linear-gradient(135deg, #25d366, #128c7e);
+        }
+
+        .contact-tg {
+            background: linear-gradient(135deg, #0088cc, #00c6ff);
+        }
+
+        .contact-tt {
+            background: linear-gradient(135deg, #000000, #25F4EE, #FE2C55);
+        }
+
+        .contact-info {
+            flex: 1;
+        }
+
+        .contact-label {
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 3px;
+        }
+
+        .contact-value {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        /* === VIDEO === */
         .top-video-box {
             margin-bottom: 25px;
             text-align: center;
@@ -373,7 +497,7 @@
         /* === CATATAN === */
         .note-box {
             background: rgba(255, 170, 0, 0.08);
-            border: 1px solid rgba(255, 170, 0, 0.2);
+border: 1px solid rgba(255, 170, 0, 0.2);
             border-radius: 12px;
             padding: 15px;
             margin-top: 20px;
@@ -413,14 +537,15 @@
         <div class="brand-badge">✨ By Xav|Dynasty</div>
     </div>
 
-    <!-- TAB NAVIGASI -->
+    <!-- TAB NAVIGASI — 3 TAB SEKARANG! -->
     <div class="tabs">
         <button class="tab-btn active" onclick="bukaTab('shop')">🛍️ Toko</button>
         <button class="tab-btn" onclick="bukaTab('payment')">💳 Bayar</button>
+        <button class="tab-btn" onclick="bukaTab('dev')">👤 Dev</button>
     </div>
 
     <!-- ================================== -->
-    <!-- HALAMAN 1: TOKO / PRODUK -->
+    <!-- HALAMAN 1: TOKO / PRODUK + VIP -->
     <!-- ================================== -->
     <div class="page active" id="page-shop">
         <div class="card">
@@ -447,12 +572,45 @@
                     <div class="product-price">Rp 15.000</div>
                     <button class="buy-btn" onclick="bukaTab('payment')">Beli Sekarang</button>
                 </div>
-                <!-- PRODUK 4 -->
-                <div class="product-card">
-                    <div class="product-icon">⚡</div>
+                <!-- PRODUK 4 - VIP -->
+                <div class="product-card" style="border-color: rgba(157, 78, 221, 0.5); background: linear-gradient(135deg, rgba(121, 40, 202, 0.15), rgba(0, 212, 255, 0.1));">
+                    <div class="product-icon">👑</div>
                     <div class="product-name">Layanan VIP</div>
                     <div class="product-price">Rp 25.000</div>
                     <button class="buy-btn" onclick="bukaTab('payment')">Beli Sekarang</button>
+                </div>
+            </div>
+
+            <!-- 📋 PENJELASAN KEUNTUNGAN VIP -->
+            <div class="vip-box">
+                <h3 class="vip-title">👑 Apa Itu Layanan VIP?</h3>
+                <p style="font-size:14px; color:#ccc; margin-bottom:15px; line-height:1.6;">
+                    <strong>Layanan VIP</strong> = Pelanggan Spesial! Dapat perlakuan istimewa & keuntungan lebih dari pembeli biasa.
+                </p>
+                <h4 style="color:#d8b4fe; margin-bottom:12px; font-size:15px;">✅ Keuntungan Member VIP:</h4>
+                <div class="vip-benefit">
+                    <span>⚡</span>
+                    <div><strong>Proses Didahulukan</strong> — Pesananmu diproses paling cepat duluan!</div>
+                </div>
+                <div class="vip-benefit">
+                    <span>🕒</span>
+                    <div><strong>Layanan 24 Jam</strong> — Kapan saja siap dilayani, tidak ada jam tutup!</div>
+                </div>
+                <div class="vip-benefit">
+                    <span>💰</span>
+                    <div><strong>Diskon Khusus</strong> — Harga lebih murah untuk pembelian berikutnya!</div>
+                </div>
+                <div class="vip-benefit">
+                    <span>🎁</span>
+                    <div><strong>Bonus Tambahan</strong> — Setiap pembelian selalu dapat bonus item!</div>
+                </div>
+                <div class="vip-benefit">
+                    <span>🛡️</span>
+                    <div><strong>Garansi Penuh</strong> — Garansi uang kembali 100% jika ada masalah!</div>
+                </div>
+                <div class="vip-benefit">
+                    <span>💬</span>
+                    <div><strong>Respon Cepat</strong> — Balas pesan paling cepat, tidak antri!</div>
                 </div>
             </div>
         </div>
@@ -470,14 +628,14 @@
     </div>
 
     <!-- ================================== -->
-    <!-- HALAMAN 2: PEMBAYARAN + VIDEO! -->
+    <!-- HALAMAN 2: PEMBAYARAN + VIDEO -->
     <!-- ================================== -->
     <div class="page" id="page-payment">
         <div class="card">
             <h2 class="section-title" style="justify-content:center; font-size:22px;">💳 Pembayaran</h2>
             <p style="text-align:center; color:#aaa; margin-bottom:20px;">Silakan bayar melalui metode di bawah</p>
 
-            <!-- 🎥 VIDEO DI ATAS QRIS — SUDAH KEMBALI! -->
+            <!-- 🎥 VIDEO DI ATAS QRIS -->
             <div class="top-video-box">
                 <video class="top-video" id="topVideo" loop playsinline controls>
                     <source src="https://cdn.videy.co/ZLxBOhDP1.mp4" type="video/mp4">
@@ -526,6 +684,56 @@
         </div>
     </div>
 
+    <!-- ================================== -->
+    <!-- HALAMAN 3: DEV / KONTAK — BARU! -->
+    <!-- ================================== -->
+    <div class="page" id="page-dev">
+        <div class="card">
+            <h2 class="section-title" style="justify-content:center; font-size:22px;">👤 Hubungi Dev</h2>
+            <p style="text-align:center; color:#aaa; margin-bottom:25px;">Punya pertanyaan? Hubungi saya langsung!</p>
+
+            <!-- FOTO & NAMA DEV -->
+            <div class="dev-avatar">👤</div>
+            <h3 class="dev-name">Xav|Dynasty</h3>
+            <p class="dev-role">Developer & Pemilik Toko</p>
+
+            <!-- 💬 WHATSAPP -->
+            <a href="https://wa.me/6281545501924?text=Halo%20Xav%7CDynasty!%20Saya%20mau%20tanya%20tentang%20produk" target="_blank" class="contact-box">
+                <div class="contact-icon contact-wa">💬</div>
+                <div class="contact-info">
+                    <div class="contact-label">WhatsApp</div>
+                    <div class="contact-value">+62 815-4550-1924</div>
+                </div>
+            </a>
+
+            <!-- ✈️ TELEGRAM -->
+            <a href="https://t.me/XavDynasty" target="_blank" class="contact-box">
+                <div class="contact-icon contact-tg">✈️</div>
+                <div class="contact-info">
+                    <div class="contact-label">Telegram</div>
+                    <div class="contact-value">@XavDynasty</div>
+                </div>
+            </a>
+
+            <!-- 🎵 TIKTOK -->
+            <a href="https://tiktok.com/@xav_dynasty" target="_blank" class="contact-box">
+                <div class="contact-icon contact-tt">🎵</div>
+                <div class="contact-info">
+                    <div class="contact-label">TikTok — Follow & Kunjungi!</div>
+                    <div class="contact-value">@xav_dynasty</div>
+                </div>
+            </a>
+
+            <!-- PESAN TAMBAHAN -->
+            <div class="note-box" style="margin-top:25px;">
+                <h4>💡 Catatan</h4>
+                <p>• Klik salah satu tombol di atas untuk langsung chat!<br>
+                   • Saya akan balas secepatnya — biasanya dalam beberapa menit ⚡<br>
+                   • Follow TikTok untuk update produk terbaru! 🎵</p>
+            </div>
+        </div>
+    </div>
+
     <!-- FOOTER -->
     <div class="footer">
         © 2026 Xav|Dynasty — All Rights Reserved
@@ -535,19 +743,14 @@
 <script>
     // === FUNGSI PINDAH HALAMAN ===
     function bukaTab(namaTab) {
-        // Ubah tombol aktif
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         event.target.classList.add('active');
-
-        // Tampilkan halaman yang dipilih
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById('page-' + namaTab).classList.add('active');
-
-        // Scroll ke atas
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // === FUNGSI SALIN NOMOR DANA ===
+    // === FUNGSI SALIN NOMOR ===
     function salinNomor(id, btn) {
         const nomor = document.getElementById(id).innerText;
         navigator.clipboard.writeText(nomor).then(() => {
@@ -564,5 +767,5 @@
 </script>
 
 </body>
-  </html>
-  
+    </html>
+    
